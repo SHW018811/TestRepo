@@ -11,6 +11,7 @@ Parameters:
     - batterySOH
 ==================================================================*/
 #include "all_headers.h"
+#include "ekfsoc.h"
 #define VERSION "0.4"
 
 //input_thread
@@ -607,6 +608,10 @@ int main(int argc, char *argv[]) {
     initializer();
 
     init_battery_array();
+    float delta_time = 1.0f;
+    Cell_Data_t cell = Init_Cell(delta_time);
+    float SOC_estimate = cell.SOC_Initial;
+    float voltage_delay_est = cell.voltage_delay_Initial;
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");
@@ -631,6 +636,10 @@ int main(int argc, char *argv[]) {
 
     pthread_mutex_init(&lock, NULL);
     
+    // SOC EKF thread
+    pthread_t tid_soc_ekf;
+    pthread_create(&tid_soc_ekf, NULL, soc_ekf_thread, (void *)&cell);
+
     // start InputThread && CANtxThread
     pthread_create(&tid1, NULL, input_thread, NULL);
     pthread_create(&tid2, NULL, can_sender_thread, argv[1]);
@@ -639,6 +648,9 @@ int main(int argc, char *argv[]) {
     pthread_create(&tid5, NULL, charge_batterypack_thread, NULL);
     pthread_create(&tid6, NULL, temp_batterypack_thread, NULL);
     pthread_create(&tid7, NULL, voltage_batterypack_thread, NULL);
+
+    // Wait for SOC EKF thread
+    pthread_join(tid_soc_ekf, NULL);
 
     // Main Thread wait for both threads
     pthread_join(tid1, NULL);
@@ -655,4 +667,28 @@ int main(int argc, char *argv[]) {
 
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
     return 0;
+}
+
+void *soc_ekf_thread(void *arg) {
+    Cell_Data_t *cell = (Cell_Data_t *)arg;
+    float delta_time = 1.0f;
+
+    while (ifrunning) {
+        pthread_mutex_lock(&lock);
+        UpdateTemperature(cell, delta_time);
+        UpdateResistance(cell);
+        cell->voltage_terminal = SimulateTerminalVoltage(cell, delta_time);
+
+        float soc_est, voltage_delay_est;
+        SOCEKF(cell, delta_time, &soc_est, &voltage_delay_est);
+        cell->SOC_Initial = soc_est;
+        cell->voltage_delay_Initial = voltage_delay_est;
+
+        bms_soc.SOC = (int)(soc_est);  // propagate to CAN frame
+        pthread_mutex_unlock(&lock);
+
+        usleep(100000); // run at 10Hz
+    }
+
+    return NULL;
 }
