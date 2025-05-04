@@ -1,4 +1,3 @@
-#include "all_headers.h"
 #define OCV_SOC_T_SIZE 986 //OCV_SOC 길이
 
 //5% -> 셀 하나 전압 2.95V -> 충전 중 전압 2.9125V (OCV-R0-(-Charge_Current * R0))

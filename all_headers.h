@@ -57,7 +57,5 @@ all_headers.h
 
 //userdefined headers
 #include "dbc.h"
-#include "OCV_SOC_T.h"
-#include "ekfsoc.h"
 
 #endif // ALL_HEADERS_H
