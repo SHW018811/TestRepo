@@ -250,7 +250,8 @@ void change_value(int mode, int ifup) {
 
 
 void initializer(){
-    int soc, soh, designed_capacity, air_temp;
+    int soc, soh, air_temp;
+    double designed_capacity;
     printf("input SOC you want (0~100): ");
     scanf("%d", &soc);
     if (soc < 0) soc = 0;
@@ -271,10 +272,20 @@ void initializer(){
     if (air_temp > 127) air_temp = 127;
 
     pthread_mutex_lock(&lock); //my init code
+
+    default_battery.Resistance0 = 0.0005884314;
+    default_battery.Resistance1 = 0.01145801322;
+    default_battery.C1 = 4846.080679;
+    default_battery.batterycurrent = -0.41; //Charege Current (CC)
+    default_battery.batteryvoltage = 
+    default_battery.DesignedCapacity = 4.07611;
+    bms_temperature.AirTemp = air_temp;
+    bms_soc.SOH = 100;
+    /*
     default_battery.batteryvoltage = VOLTAGE_MIN + ((VOLTAGE_MAX - VOLTAGE_MIN) * soc / 100);
     bms_soc.SOH = 100; // 100 고정
     batterypack.DesignedCapacity = designed_capacity;
-    bms_temperature.AirTemp = air_temp;
+    bms_temperature.AirTemp = air_temp;*/
     pthread_mutex_unlock(&lock);
 
     bms_soc.Capacity = batterypack.DesignedCapacity * ((double)bms_soc.SOH / 100);
