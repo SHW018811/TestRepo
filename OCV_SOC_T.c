@@ -1,3 +1,5 @@
+#include "all_headers.h"
+
 float CHG_OCV[986] = {
     2.5f,
 2.69078f,
