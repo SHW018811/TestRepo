@@ -277,7 +277,7 @@ void initializer(){
     default_battery.Resistance1 = 0.01145801322;
     default_battery.C1 = 4846.080679;
     default_battery.batterycurrent = -0.41; //Charege Current (CC)
-    default_battery.batteryvoltage = 
+    default_battery.batteryvoltage = default_battery.batterycurrent * default_battery.Resistance0 * (1 - exp(-1 / default_battery.Resistance1 * default_battery.C1));
     default_battery.DesignedCapacity = 4.07611;
     bms_temperature.AirTemp = air_temp;
     bms_soc.SOH = 100;
