@@ -50,7 +50,7 @@ all_headers.h
 #define CURSOR_UP "\033[1A"
 
 //MACROS for setting default values for dbc
-#define BATTERY_CELLS 1
+#define BATTERY_CELLS 192
 #define VOLTAGE_MIN 2.5
 #define VOLTAGE_MAX 4.2
 #define CELLS_IN_LINE 10

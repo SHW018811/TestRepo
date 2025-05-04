@@ -94,7 +94,7 @@ typedef struct __attribute__((packed)) {
     uint8_t  MaxDischargeCurrent;// 8 bits: Maximum Discharge Current (in A)
     uint16_t DCLinePower;        // 16 bits: DC Line Power (in W)
 } BMS_DC_Charging_t;
-
+/*
 typedef struct __attribute__((packed)) {
     double_t batterytemp;
     double_t batteryvoltage;
@@ -107,6 +107,20 @@ typedef struct __attribute__((packed)) {
     double_t voltage_delay;
     double_t Temperature;
     double_t SOC;
+} Battery_t;*/
+typedef struct __attribute__((packed)) {
+    float SOC_Initial;
+    float voltage_delay_Initial;
+    float coulombic_efficiency;
+    float ChargeCurrent;
+    float noiseincurrent;
+    float Capacity;
+    float capacity1c;
+    float R0, R1, C1;
+    float voltage_delay;
+    float voltage_terminal;
+    float SOC;             
+    float Temperature;
 } Battery_t;
 
 typedef struct __attribute__((packed)) {

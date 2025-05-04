@@ -46,8 +46,17 @@ int iftempfan = 0;      //if fan works
 functions for print screen
 =================================================================*/
 
+double scale_voltage(uint16_t raw) {
+    return raw * 0.1;
+}
 
-void init_battery_array() {
+uint16_t descale_voltage(double voltage) {
+    return (uint16_t)(voltage * 10.0f);
+}
+
+void init_battery_array() { //Initialize까지 진행됐고 이제 이거 수정해보자.
+    //초기 배터리 셀 정보를 모든 배터리 셀 배열에 default_battery 정보를 넘긴다
+    //최저 2.5 - 4.2 정격 전압 3.65 이므로 192개면 아이오닉 배터리 정격 전압이 나올듯함
     for (int i = 0; i < BATTERY_CELLS; i++) {
         memcpy(&battery[i], &default_battery, sizeof(Battery_t));
     }
@@ -102,17 +111,17 @@ void print_cell(){
     for (int i = 0; i < BATTERY_CELLS; i++) {                       //print battery cells data
         // temperature color
         const char* temp_color = RESET;
-        if (temp[i] <= 0) temp_color = BLUE;
-        else if (temp[i] <= 5) temp_color = YELLOW;
-        else if (temp[i] >= 35) temp_color = RED;
+        if (temp[i] <= -10) temp_color = BLUE;
+        else if (temp[i] <= 0) temp_color = YELLOW;
+        else if (temp[i] >= 45) temp_color = RED;
         else if (temp[i] >= 13) temp_color = GREEN;
 
         // voltage color
         const char* volt_color = RESET;
-        if (voltage[i] <= 2.5) volt_color = RED;
-        else if (voltage[i] <= 3.0) volt_color = YELLOW;
-        else if (voltage[i] >= 4.2) volt_color = RED;
-        else if (voltage[i] >= 4.0) volt_color = GREEN;
+        if (voltage[i] <= 6.0) volt_color = RED;
+        else if (voltage[i] <= 6.5) volt_color = YELLOW;
+        else if (voltage[i] >= 8.4) volt_color = RED;
+        else if (voltage[i] >= 8.0) volt_color = GREEN;
 
         if ((i + 1) == bms_battery_info.MaxVoltageID) volt_color = MAXHIGHLIGHT;
         if ((i + 1) == bms_battery_info.MinVoltageID) volt_color = MINHIGHLIGHT;
@@ -181,7 +190,7 @@ double get_correct(double battery_temp) {           // no mutex lock
     else if (battery_temp >= -10 && battery_temp < 12) correct = 0.02;
     else if (battery_temp < -10) correct = 0.04;
     return correct;
-}//Voltage correction -> resistance?
+}
 
 
 
@@ -247,40 +256,37 @@ void change_value(int mode, int ifup) {
     }
 }
 
-float SOC_from_OCV(float ocv) {
-    if (ocv <= CHG_OCV[0]) return CHG_SOC[0];
-    if (ocv >= CHG_OCV[OCV_SOC_T_SIZE-1]) return CHG_SOC[OCV_SOC_T_SIZE-1];
-    int i = 0;
-    while (i < OCV_SOC_T_SIZE - 1 && CHG_OCV[i+1] < ocv) i++;
-    //선형 보간으로 테이블 값들보다 저 정확하게 사이 값을 계산해주는 함수
-    float ocv_low  = CHG_OCV[i];
-    float ocv_high = CHG_OCV[i+1];
-    float soc_low  = CHG_SOC[i];
-    float soc_high = CHG_SOC[i+1];
-    float t = (ocv - ocv_low) / (ocv_high - ocv_low);
-    return (soc_low + t * (soc_high - soc_low));
-}
+
 
 void initializer(){
+    int air_temp;
+    printf("input air temp you want (℃): ");
+    scanf("%d", &air_temp);
+    if (air_temp < -40) air_temp = -40;
+    if (air_temp > 127) air_temp = 127;
+
     pthread_mutex_lock(&lock);
     default_battery.coulombic_efficiency = 1.0f;
-    default_battery.SOC = 5.0f; // 5% 초기 SOC
+    default_battery.SOC_Initial = SOC_from_OCV(Voltage_CHG[0]);
     default_battery.ChargeCurrent = -0.41f;
-    default_battery.noiseincurrent = default_battery.ChargeCurrent;
-    default_battery.DesignedCapacity = 4.07611f;
-    default_battery.Resistance0 = 0.00005884314f;
-    default_battery.Resistance1 = 0.01145801322f;
+    default_battery.noiseincurrent = 0.41f;
+    default_battery.Capacity = 4.07611f;
+    default_battery.capacity1c = (default_battery.Capacity * 3600)/ 100;
+    default_battery.R0 = 0.00005884314f;
+    default_battery.R1 = 0.01145801322f;
     default_battery.C1 = 4846.080679f;
-    default_battery.voltage_delay = default_battery.ChargeCurrent * default_battery.Resistance1 * (1 - exp(-1.0f / (default_battery.Resistance1 * default_battery.C1)));
-    default_battery.batteryvoltage = SOC_from_OCV(default_battery.SOC) - default_battery.Resistance0 * default_battery.batterycurrent;
-    default_battery.batterycurrent = default_battery.ChargeCurrent;
-    default_battery.batterytemp = 25.0f;
+    default_battery.voltage_delay_Initial = default_battery.ChargeCurrent * default_battery.R1 * (1 - exp(-1/default_battery.R1 * default_battery.C1));
+    default_battery.voltage_delay = default_battery. voltage_delay_Initial;
     default_battery.Temperature = 25.0f;
-    bms_temperature.AirTemp = 25;
-    bms_soc.SOH = 100;
+    default_battery.SOC = default_battery.SOC_Initial;
+    //초기화 단계를 거치고 수식 적용하면 될 듯 함...
+    /*
+    default_battery.batteryvoltage = VOLTAGE_MIN + ((VOLTAGE_MAX - VOLTAGE_MIN) * soc / 100);
+    bms_soc.SOH = soh;
+    batterypack.DesignedCapacity = designed_capacity;
+    bms_temperature.AirTemp = air_temp;
+    */
     pthread_mutex_unlock(&lock);
-
-    bms_soc.Capacity = batterypack.DesignedCapacity * ((double)bms_soc.SOH / 100);
 }
 
 // User input thread    ||fix CAN data belongs to user input
