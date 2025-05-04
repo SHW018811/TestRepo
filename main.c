@@ -247,45 +247,37 @@ void change_value(int mode, int ifup) {
     }
 }
 
-
+float SOC_from_OCV(float ocv) {
+    if (ocv <= CHG_OCV[0]) return CHG_SOC[0];
+    if (ocv >= CHG_OCV[OCV_SOC_T_SIZE-1]) return CHG_SOC[OCV_SOC_T_SIZE-1];
+    int i = 0;
+    while (i < OCV_SOC_T_SIZE - 1 && CHG_OCV[i+1] < ocv) i++;
+    //선형 보간으로 테이블 값들보다 저 정확하게 사이 값을 계산해주는 함수
+    float ocv_low  = CHG_OCV[i];
+    float ocv_high = CHG_OCV[i+1];
+    float soc_low  = CHG_SOC[i];
+    float soc_high = CHG_SOC[i+1];
+    float t = (ocv - ocv_low) / (ocv_high - ocv_low);
+    return (soc_low + t * (soc_high - soc_low));
+}
 
 void initializer(){
-    int soc, soh, air_temp;
-    double designed_capacity;
-    printf("input SOC you want (0~100): ");
-    scanf("%d", &soc);
-    if (soc < 0) soc = 0;
-    if (soc > 100) soc = 100;
-
-    printf("input SOH you want (0~100): ");
-    scanf("%d", &soh);
-    if (soh < 0) soh = 0;
-    if (soh > 100) soh = 100; //must soh = 100
-
-    printf("input designed capacity you want (mAh): ");
-    scanf("%lf", &designed_capacity);
-    if (designed_capacity < 0) designed_capacity = 0; //my code 1cell = 4.07611
-
-    printf("input air temp you want (℃): ");
-    scanf("%d", &air_temp);
-    if (air_temp < -40) air_temp = -40;
-    if (air_temp > 127) air_temp = 127;
-
-    pthread_mutex_lock(&lock); //my init code
-
-    default_battery.Resistance0 = 0.0005884314;
-    default_battery.Resistance1 = 0.01145801322;
-    default_battery.C1 = 4846.080679;
-    default_battery.batterycurrent = -0.41; //Charege Current (CC)
-    default_battery.batteryvoltage = default_battery.batterycurrent * default_battery.Resistance0 * (1 - exp(-1 / default_battery.Resistance1 * default_battery.C1));
-    default_battery.DesignedCapacity = 4.07611;
-    bms_temperature.AirTemp = air_temp;
+    pthread_mutex_lock(&lock);
+    default_battery.coulombic_efficiency = 1.0f;
+    default_battery.SOC = 5.0f; // 5% 초기 SOC
+    default_battery.ChargeCurrent = -0.41f;
+    default_battery.noiseincurrent = default_battery.ChargeCurrent;
+    default_battery.DesignedCapacity = 4.07611f;
+    default_battery.Resistance0 = 0.00005884314f;
+    default_battery.Resistance1 = 0.01145801322f;
+    default_battery.C1 = 4846.080679f;
+    default_battery.voltage_delay = default_battery.ChargeCurrent * default_battery.Resistance1 * (1 - exp(-1.0f / (default_battery.Resistance1 * default_battery.C1)));
+    default_battery.batteryvoltage = SOC_from_OCV(default_battery.SOC) - default_battery.Resistance0 * default_battery.batterycurrent;
+    default_battery.batterycurrent = default_battery.ChargeCurrent;
+    default_battery.batterytemp = 25.0f;
+    default_battery.Temperature = 25.0f;
+    bms_temperature.AirTemp = 25;
     bms_soc.SOH = 100;
-    /*
-    default_battery.batteryvoltage = VOLTAGE_MIN + ((VOLTAGE_MAX - VOLTAGE_MIN) * soc / 100);
-    bms_soc.SOH = 100; // 100 고정
-    batterypack.DesignedCapacity = designed_capacity;
-    bms_temperature.AirTemp = air_temp;*/
     pthread_mutex_unlock(&lock);
 
     bms_soc.Capacity = batterypack.DesignedCapacity * ((double)bms_soc.SOH / 100);

@@ -110,8 +110,8 @@ typedef struct __attribute__((packed)) {
 } Battery_t;
 
 typedef struct __attribute__((packed)) {
-    uint16_t DesignedCapacity;
-    uint16_t Resistance;
+    double_t DesignedCapacity;
+    double_t Resistance;
 } Batterypack_t;
 
 /*================================================================
