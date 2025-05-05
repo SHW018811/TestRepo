@@ -693,7 +693,7 @@ void *voltage_batterypack_thread(void *arg){        //tid6
         } //셀 추가 시 +로 변경 후 셀 개수 만큼 나누면 될 듯 함... + estimate_SOC_Voltage[BatSIZE][1]
         if(ekf.estimate_SOC_Voltagedelay[0] >= 100.0) ekf.estimate_SOC_Voltagedelay[0] = 100;
         if(ekf.estimate_SOC_Voltagedelay[0] <= 0.0) ekf.estimate_SOC_Voltagedelay[0] = 0; 
-        bms_soc.SOC = ekf.estimate_SOC_Voltagedelay[0];
+        bms_soc.SOC = (uint8_t)ekf.estimate_SOC_Voltagedelay[0];
         //bms_soc.DOD =
         bms_battery_info.Voltage = (uint16_t)(ekf.estimate_SOC_Voltagedelay[1]);
         bms_battery_info.MinVoltage = (uint8_t)(minvoltage * 10);

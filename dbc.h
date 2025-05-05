@@ -55,7 +55,7 @@ typedef struct __attribute__((packed)) {
 // Structure for BMS_SOC (ID: 1574, 0x626)
 // Message layout: 1 byte SOC, 2 bytes DOD, 2 bytes Capacity, 1 byte SOH.
 typedef struct __attribute__((packed)) {
-    double_t  SOC;       // 8 bits: State of Charge (in %)
+    uint8_t SOC;       // 8 bits: State of Charge (in %)
     uint16_t DOD;       // 16 bits: Depth of Discharge (in Ah)
     uint16_t Capacity;  // 16 bits: Battery Capacity (in Ah)
     uint8_t  SOH;       // 8 bits: State of Health (in %)
