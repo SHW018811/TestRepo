@@ -496,11 +496,11 @@ void *temp_batterypack_thread(void *arg){           //tid4
         double local_air_temp = bms_temperature.AirTemp;
         for(int i=0; i<BATTERY_CELLS; i++){
             internal_heat = battery[i].R0 * pow(battery[i].ChargeCurrent,2);
-            double heater_power = (battery[i].Temperature < 15)? heater_power_w : 0;
-            double cooler_power = (battery[i].Temperature > 35)? cooler_power_w : 0;
+            double heater_power = (battery[i].Temperature <= 15)? heater_power_w : 0;
+            double cooler_power = (battery[i].Temperature >= 35)? cooler_power_w : 0;
             double totalheat = internal_heat + heater_power - cooler_power;
-            if(heater_power != 0) iftempfan = 1;
-            else if(cooler_power != 0) iftempfan = 2;
+            if(heater_power != 0) iftempfan = 2;
+            else if(cooler_power != 0) iftempfan = 1;
             else iftempfan = 0;
             battery[i].Temperature += (1.0 / 200.0 * (totalheat - (battery[i].Temperature - local_air_temp) / 3.0));
             if(mintemp > battery[i].Temperature){
