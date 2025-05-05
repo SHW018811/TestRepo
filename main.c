@@ -502,7 +502,7 @@ void *temp_batterypack_thread(void *arg){           //tid4
             if(heater_power != 0) iftempfan = 1;
             else if(cooler_power != 0) iftempfan = 2;
             else iftempfan = 0;
-            battery[i].Temperature += (1 / battery[i].capacity1c * (totalheat - (battery[i].Temperature - local_air_temp) / 200));
+            battery[i].Temperature += (1.0 / 200.0 * (totalheat - (battery[i].Temperature - local_air_temp) / 3.0));
             if(mintemp > battery[i].Temperature){
                 mintemp = battery[i].Temperature;
                 mintempid = i + 1;
@@ -669,6 +669,7 @@ void *voltage_batterypack_thread(void *arg){        //tid6
                 maxvoltage = ekf.estimate_SOC_Voltagedelay[1];
                 maxvoltageid = i + 1;
             }
+            //voltage or soc error 발생 이유가 뭐지?
             if(ekf.estimate_SOC_Voltagedelay[1] > VOLTAGE_MAX || ekf.estimate_SOC_Voltagedelay[1] < VOLTAGE_MIN) ifvoltageerror = 1;
             else ifvoltageerror = 0;
         } //셀 추가 시 +로 변경 후 셀 개수 만큼 나누면 될 듯 함... + estimate_SOC_Voltage[BatSIZE][1]
