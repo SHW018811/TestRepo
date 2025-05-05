@@ -127,6 +127,7 @@ typedef struct __attribute__((packed)){
     double F[2][2], Q[2][2], P[2][2], Pp[2][2];
     double estimate_SOC_Voltagedelay[2], previous_vector[2];
     double R;
+    int init[BATTERY_CELLS] = 0;
 }EKF_State;
 
 typedef struct __attribute__((packed)) {

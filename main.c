@@ -303,10 +303,10 @@ void *input_thread(void *arg) {                                     //tid1
                 bms_status.Status =!bms_status.Status;
                 break;
             case 'a':
-                if (battery[0].batterytemp > 0) battery[0].batterytemp--;
+                if (battery[0].Temperature > 0) battery[0].Temperature--;
                 break;
             case 'A':
-                if (battery[0].batterytemp < 100) battery[0].batterytemp++;
+                if (battery[0].Temperature < 100) battery[0].Temperature++;
                 break;
             case 'g':
                 if (bms_soc.SOC > 0) bms_soc.SOC--;
@@ -502,7 +502,7 @@ void *temp_batterypack_thread(void *arg){           //tid4
             if(heater_power != 0) iftempfan = 1;
             else if(cooler_power != 0) iftempfan = 2;
             else iftempfan = 0;
-            battery[i].Temperature += (1 / battery[i].capacity1c * (total_heat - (battery[i].Temperature - local_air_temp) / 200));
+            battery[i].Temperature += (1 / battery[i].capacity1c * (totalheat - (battery[i].Temperature - local_air_temp) / 200));
             if(mintemp > battery[i].Temperature){
                 mintemp = battery[i].Temperature;
                 mintempid = i + 1;
@@ -534,7 +534,6 @@ void *charge_batterypack_thread(void *arg){         //tid5
     while(ifrunning){
         pthread_mutex_lock(&lock);
         int local_status = bms_status.Status;
-        static int init[BATTERY_CELLS] = 0;
         pthread_mutex_unlock(&lock);
         if(local_status){
             usleep(300000);
@@ -575,8 +574,8 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 soc_voltagedelay_after[0] = ekf.previous_vector[0] - 1 * 1 / battery[i].capacity1c * battery[i].noiseincurrent;
                 soc_voltagedelay_after[1] = exp(-1 / (battery[i].R1 * battery[i].C1)) * ekf.previous_vector[1] + battery[i].R1 * (1.0 - exp(-1 / (battery[i].R1 * battery[i].C1))) * battery[i].noiseincurrent;
                 double FP[2][2];
-                for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) FP[i][j] = F[i][0] * P[0][j] + F[i][1] * P[1][j];
-                for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) Pp[i][j] = FP[i][0]*F[j][0] + FP[i][1]*F[j][1] + Q[i][j];
+                for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) FP[i][j] = ekf.F[i][0] * ekf.P[0][j] + ekf.F[i][1] * ekf.P[1][j];
+                for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) ekf.Pp[i][j] = FP[i][0] * ekf.F[j][0] + FP[i][1] * ekf.F[j][1] + ekf.Q[i][j];
                 double Jacobian_vector[2];
                 //ComputeJacobianH -> 측정된 전압
                 //ComputeJacobianH(soc_voltagedelay_after[0], previous_vector[0], Jacobian_vector);
@@ -594,7 +593,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 HP[0] = Jacobian_vector[0] * Pp[0][0] + Jacobian_vector[1] * Pp[1][0];
                 HP[1] = Jacobian_vector[0] * Pp[0][1] + Jacobian_vector[1] * Pp[1][1];
                 //칼만 이득 분모값 구하기 H * Pp * (H^T + R) T는 역행렬
-                double kalman_gain_denom = HP[0] * Jacobian_vector[0] + HP[1] * Jacobian_vector[1] + R;
+                double kalman_gain_denom = HP[0] * Jacobian_vector[0] + HP[1] * Jacobian_vector[1] + ekf.R;
                 double kalman_gain[2] = {HP[0] / kalman_gain_denom, HP[1] / kalman_gain_denom};
                 //residual 예측치 신뢰도 구하기
                 if(soc_voltagedelay_after[0] >= 100.0) soc_voltagedelay_after[0] = 100.0;
