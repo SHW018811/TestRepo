@@ -534,6 +534,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
     while(ifrunning){
         pthread_mutex_lock(&lock);
         int local_status = bms_status.Status;
+        for(int i=0; i<BATTERY_CELLS; i++) ekf.init[BATTERY_CELLS] = 0;
         pthread_mutex_unlock(&lock);
         if(local_status){
             usleep(300000);
@@ -555,7 +556,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].ChargeCurrent;
                 battery[i].noiseincurrent = battery[i].ChargeCurrent;
                 //SOCEKF
-                if(!init[i]){ //초기 상태라면 설정하는 것
+                if(!ekf.init[i]){ //초기 상태라면 설정하는 것
                     //F:상태 전이 행렬, Q:시스템 노이즈(예측 불확실성), P:추정 오차 공분산, Pp:예측 공분산
                     ekf.F[0][0] = 1.0; ekf.F[0][1] = 0.0;
                     ekf.F[1][0] = 0.0; ekf.F[1][1] = exp(-1 / (battery[i].R1 * battery[i].C1));
@@ -567,7 +568,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                     //초기 상태이므로 초기 데이터 적용
                     ekf.previous_vector[0] = battery[i].SOC_Initial;
                     ekf.previous_vector[1] = battery[i].voltage_delay_Initial;
-                    init[i] = 1;
+                    ekf.init[i] = 1;
                 }
                 double soc_voltagedelay_after[2];
                 //SOC, V1 예측
