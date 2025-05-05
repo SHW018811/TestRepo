@@ -267,7 +267,7 @@ void initializer(){
 
     pthread_mutex_lock(&lock);
     default_battery.coulombic_efficiency = 1.0f;
-    default_battery.SOC_Initial = SOC_from_OCV(Voltage_CHG[0]); //2.5V부터 시작
+    default_battery.SOC_Initial = SOC_from_OCV(2.5); //2.5V부터 시작
     default_battery.ChargeCurrent = -0.41f;
     default_battery.noiseincurrent = 0.41f;
     default_battery.Capacity = 4.07611f;
