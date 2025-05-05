@@ -77,7 +77,8 @@ typedef struct __attribute__((packed)) {
 // Message layout: 2 bytes Resistance, 1 byte MinResistance, 1 byte MinResistanceID,
 // 1 byte MaxResistance, 1 byte MaxResistanceID.
 typedef struct __attribute__((packed)) {
-    uint16_t Resistance;      // 16 bits: Resistance (in Ω)
+    double_t Resistance0;      // 8 bits: Resistance (in Ω)
+    double_t Resistance1;      // 8 bits: Resistance (in Ω)
     uint8_t  MinResistance;   // 8 bits: Minimum Resistance (in mΩ, factor 0.1)
     uint8_t  MinResistanceID; // 8 bits: Identifier for minimum resistance
     uint8_t  MaxResistance;   // 8 bits: Maximum Resistance (in mΩ, factor 0.1)
