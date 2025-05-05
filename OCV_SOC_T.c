@@ -1,6 +1,6 @@
 #include "all_headers.h"
 
-float CHG_OCV[986] = {
+double CHG_OCV[986] = {
     2.5f,
 2.69078f,
 2.73838f,
@@ -989,7 +989,7 @@ float CHG_OCV[986] = {
 4.09216f
 };
 
-float CHG_SOC[986] ={
+double CHG_SOC[986] ={
     0.0f,
 0.09595704f,
 0.197156389f,
@@ -1977,3 +1977,31 @@ float CHG_SOC[986] ={
 99.97150919f,
 100.0f,
 };
+
+double OCV_from_SOC(double SOC) {
+    if (SOC <= CHG_SOC[0]) return CHG_OCV[0];
+    if (SOC >= CHG_SOC[OCV_SOC_T_SIZE-1]) return CHG_OCV[OCV_SOC_T_SIZE-1];
+    int i = 0;
+    while (i < OCV_SOC_T_SIZE - 1 && CHG_SOC[i+1] < SOC) i++;
+    double soc_low = CHG_SOC[i];
+    double soc_high = CHG_SOC[i+1];
+    //입력한 SOC -> 상한 하한으로 정밀 SOC 계산 (선형 보간)
+    double t = (SOC - soc_low) / (soc_high - soc_low);
+    //OCV 리턴
+    return (CHG_OCV[i] + t * (CHG_OCV[i+1] - CHG_OCV[i]));
+}
+
+//위 함수 반대
+double SOC_from_OCV(double ocv) {
+    if (ocv <= CHG_OCV[0]) return CHG_SOC[0];
+    if (ocv >= CHG_OCV[OCV_SOC_T_SIZE-1]) return CHG_SOC[OCV_SOC_T_SIZE-1];
+    int i = 0;
+    while (i < OCV_SOC_T_SIZE - 1 && CHG_OCV[i+1] < ocv) i++;
+    //선형 보간으로 테이블 값들보다 저 정확하게 사이 값을 계산해주는 함수
+    double ocv_low  = CHG_OCV[i];
+    double ocv_high = CHG_OCV[i+1];
+    double soc_low  = CHG_SOC[i];
+    double soc_high = CHG_SOC[i+1];
+    double t = (ocv - ocv_low) / (ocv_high - ocv_low);
+    return (soc_low + t * (soc_high - soc_low));
+}

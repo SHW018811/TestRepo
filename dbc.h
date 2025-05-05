@@ -55,7 +55,7 @@ typedef struct __attribute__((packed)) {
 // Structure for BMS_SOC (ID: 1574, 0x626)
 // Message layout: 1 byte SOC, 2 bytes DOD, 2 bytes Capacity, 1 byte SOH.
 typedef struct __attribute__((packed)) {
-    uint8_t  SOC;       // 8 bits: State of Charge (in %)
+    double_t  SOC;       // 8 bits: State of Charge (in %)
     uint16_t DOD;       // 16 bits: Depth of Discharge (in Ah)
     uint16_t Capacity;  // 16 bits: Battery Capacity (in Ah)
     uint8_t  SOH;       // 8 bits: State of Health (in %)
@@ -109,19 +109,25 @@ typedef struct __attribute__((packed)) {
     double_t SOC;
 } Battery_t;*/
 typedef struct __attribute__((packed)) {
-    float SOC_Initial;
-    float voltage_delay_Initial;
-    float coulombic_efficiency;
-    float ChargeCurrent;
-    float noiseincurrent;
-    float Capacity;
-    float capacity1c;
-    float R0, R1, C1;
-    float voltage_delay;
-    float voltage_terminal;
-    float SOC;             
-    float Temperature;
+    double SOC_Initial;
+    double voltage_delay_Initial;
+    double coulombic_efficiency;
+    double ChargeCurrent;
+    double noiseincurrent;
+    double Capacity;
+    double capacity1c;
+    double R0, R1, C1;
+    double voltage_delay;
+    double voltage_terminal;
+    double SOC;             
+    double Temperature;
 } Battery_t;
+
+typedef struct __attribute__((packed)){
+    double F[2][2], Q[2][2], P[2][2], Pp[2][2];
+    double estimate_SOC_Voltagedelay[2], previous_vector[2];
+    double R;
+}EKF_State;
 
 typedef struct __attribute__((packed)) {
     double_t DesignedCapacity;
