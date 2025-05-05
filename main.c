@@ -591,8 +591,8 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 if(fabs(Jacobian_vector[0]) < 1e-4f) Jacobian_vector[0] = (Jacobian_vector[0] >= 0.0)? 1e-4f : -1e-4f;
                 double HP[2];
                 //HP -> H * Pp 구현
-                HP[0] = Jacobian_vector[0] * Pp[0][0] + Jacobian_vector[1] * Pp[1][0];
-                HP[1] = Jacobian_vector[0] * Pp[0][1] + Jacobian_vector[1] * Pp[1][1];
+                HP[0] = Jacobian_vector[0] * ekf.Pp[0][0] + Jacobian_vector[1] * ekf.Pp[1][0];
+                HP[1] = Jacobian_vector[0] * ekf.Pp[0][1] + Jacobian_vector[1] * ekf.Pp[1][1];
                 //칼만 이득 분모값 구하기 H * Pp * (H^T + R) T는 역행렬
                 double kalman_gain_denom = HP[0] * Jacobian_vector[0] + HP[1] * Jacobian_vector[1] + ekf.R;
                 double kalman_gain[2] = {HP[0] / kalman_gain_denom, HP[1] / kalman_gain_denom};
