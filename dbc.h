@@ -147,7 +147,7 @@ extern BMS_SOC_t bms_soc;
 extern BMS_Temperature_t bms_temperature;
 extern BMS_Resistance_t bms_resistance;
 extern BMS_DC_Charging_t bms_dc_charging;
-
+extern EKF_State ekf;
 extern Battery_t default_battery;
 extern Battery_t battery[BATTERY_CELLS];
 extern Batterypack_t batterypack;
