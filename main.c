@@ -102,8 +102,8 @@ void print_cell(){
     double voltage[BATTERY_CELLS];
     pthread_mutex_lock(&lock);
     for (int i = 0; i < BATTERY_CELLS; i++) {
-        temp[i] = battery[i].batterytemp;
-        voltage[i] = battery[i].batteryvoltage;
+        temp[i] = battery[i].Temperature;
+        voltage[i] = battery[i].voltage_terminal;
     }
     int local_status = bms_status.Status;
     int local_air_temp = bms_temperature.AirTemp;
