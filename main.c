@@ -490,6 +490,12 @@ void *temp_batterypack_thread(void *arg){           //tid4
         double heater_power_w = 5.0; //히터 출력
         double cooler_power_w = 5.0; //쿨러 출력
         double totaltemps = 0;
+        double totalreg0 = 0;
+        double totalreg1 = 0;
+        double minreg0 = 1e9;
+        int minreg0id = 0;
+        double maxreg0 = -1e9;
+        int maxreg0id = 0;
         usleep(500000);
 
         pthread_mutex_lock(&lock);
@@ -524,7 +530,19 @@ void *temp_batterypack_thread(void *arg){           //tid4
             double diff_temperature = battery[i].Temperature - 25; //셀 현재 온도 - 셀 표준 온도
             battery[i].R0 = 0.00005884314 * (1 + 0.003 * diff_temperature);
             battery[i].R1 = 0.01145801322 * (1 + 0.003 * diff_temperature);
+            totalreg0 += battery[i].R0;
+            totalreg1 += battery[i].R1;
+            if(minreg0id > battery[i].R0){
+                minreg0 = battery[i].R0;
+                minreg0id = i + 1;
+            }
+            if(maxreg0 < battery[i].R0){
+                maxreg0 = battery[i].R0;
+                maxreg0id = i + 1;
+            }
         }
+        bms_resistance.Resistance0 = (totalreg0 / BATTERY_CELLS);
+        bms_resistance.Resistance1 = (totalreg1 / BATTERY_CELLS);
         pthread_mutex_unlock(&lock);
     }
 }//UpdateTemperature || UpdateResistance 병합
