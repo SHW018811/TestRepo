@@ -61,7 +61,8 @@ BMS_Temperature_t bms_temperature = {
 
 // Reset (ID: 1576, 0x628)
 BMS_Resistance_t bms_resistance = {
-    .Resistance = 0x0000,
+    .Resistance0 = 0x0000,
+    .Resistance1 = 0x0000,
     .MinResistance = 0x00,
     .MinResistanceID = 0x00,
     .MaxResistance = 0x00,
