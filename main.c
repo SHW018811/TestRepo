@@ -229,13 +229,13 @@ void change_value(int mode, int ifup) {
             case 0:
                 if (bms_temperature.AirTemp < 127) bms_temperature.AirTemp ++; break;
             case 1:
-                if (battery[0].batterytemp < 127) battery[0].batterytemp++; break;
+                if (battery[0].Temperature < 127) battery[0].Temperature++; break;
             case 2:
-                if (battery[0].batteryvoltage < 9.0) battery[0].batteryvoltage += 0.1; break;
+                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1; break;
             case 3:
-                if (battery[1].batterytemp < 127) battery[1].batterytemp++; break;
+                if (battery[1].Temperature < 127) battery[1].Temperature++; break;
             case 4:
-                if (battery[1].batteryvoltage < 9.0) battery[1].batteryvoltage += 0.1; break;
+                if (battery[1].voltage_terminal < 9.0) battery[1].voltage_terminal += 0.1; break;
             default:
                 break;
         }
@@ -245,20 +245,18 @@ void change_value(int mode, int ifup) {
             case 0:
                 if (bms_temperature.AirTemp > -127) bms_temperature.AirTemp --; break;
             case 1:
-                if (battery[0].batterytemp > -127) battery[0].batterytemp--; break;
+                if (battery[0].Temperature > -127) battery[0].Temperature--; break;
             case 2:
-                if (battery[0].batteryvoltage > 5.5) battery[0].batteryvoltage -= 0.1; break;
+                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1; break;
             case 3:
-                if (battery[1].batterytemp > -127) battery[1].batterytemp--; break;
+                if (battery[1].Temperature > -127) battery[1].Temperature--; break;
             case 4:
-                if (battery[1].batteryvoltage > 5.5) battery[1].batteryvoltage -= 0.1; break;
+                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1; break;
             default:
                 break;
         }
     }
 }
-
-
 
 void initializer(){
     int air_temp;

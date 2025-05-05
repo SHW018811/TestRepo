@@ -76,7 +76,7 @@ BMS_DC_Charging_t bms_dc_charging = {
     .MaxDischargeCurrent = 0x00,
     .DCLinePower = 0x0000
 };
-EKF_State EKF_State = {};
+EKF_State ekf = {};
 Battery_t default_battery = {};
 Battery_t battery[BATTERY_CELLS];
 
