@@ -231,19 +231,11 @@ void change_value(int mode, int ifup) {
             case 1:
                 if (battery[0].Temperature < 127) battery[0].Temperature++; break;
             case 2:
-                if (battery[0].voltage_terminal < 4.2){
-                    battery[0].voltage_terminal += 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[0].voltage_terminal);
-                    break;
-                }
+                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1; break;
             case 3:
                 if (battery[1].Temperature < 127) battery[1].Temperature++; break;
             case 4:
-                if (battery[1].voltage_terminal < 4.2){
-                    battery[1].voltage_terminal += 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
-                    break;
-                }
+                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1; break;
             default:
                 break;
         }
@@ -255,18 +247,11 @@ void change_value(int mode, int ifup) {
             case 1:
                 if (battery[0].Temperature > -127) battery[0].Temperature--; break;
             case 2:
-                if (battery[0].voltage_terminal > 2.5){
-                    battery[0].voltage_terminal -= 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[0].voltage_terminal);
-                    break;
-                }
+                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1; break;
             case 3:
                 if (battery[1].Temperature > -127) battery[1].Temperature--; break;
             case 4:
-                if (battery[1].voltage_terminal > 2.5){
-                    battery[1].voltage_terminal -= 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);break;
-                }
+                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1; break;
             default:
                 break;
         }
@@ -581,6 +566,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
             for(int i=0; i<BATTERY_CELLS; i++){
                 //SimulateTerminalVoltage
                 battery[i].SOC -= 1 * 1 / battery[i].capacity1c * battery[i].ChargeCurrent;
+                battery[i].SOC = SOC_from_OCV(battery[i].voltage_terminal);
                 if(battery[i].SOC < 0.) battery[i].SOC = 0.;
                 if(battery[i].SOC > 100.) battery[i].SOC = 100.;
                 double tau = battery[i].R1 * battery[i].C1;
