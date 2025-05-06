@@ -235,7 +235,7 @@ void change_value(int mode, int ifup) {
             case 3:
                 if (battery[1].Temperature < 127) battery[1].Temperature++; break;
             case 4:
-                if (battery[1].voltage_terminal < 9.0) battery[1].voltage_terminal += 0.1; break;
+                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1; break;
             default:
                 break;
         }
@@ -281,6 +281,7 @@ void initializer(){
     default_battery.SOC = default_battery.SOC_Initial;
     bms_temperature.AirTemp = air_temp;
     bms_soc.SOH = 100;
+    bms_soc.Capacity = 407611;
     //초기화 단계를 거치고 수식 적용하면 될 듯 함...
     /*
     default_battery.batteryvoltage = VOLTAGE_MIN + ((VOLTAGE_MAX - VOLTAGE_MIN) * soc / 100);
