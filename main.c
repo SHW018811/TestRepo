@@ -233,7 +233,7 @@ void change_value(int mode, int ifup) {
             case 2:
                 if (battery[0].voltage_terminal < 4.2){
                     battery[0].voltage_terminal += 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
+                    bms_soc.SOC = SOC_from_OCV(battery[0].voltage_terminal);
                     break;
                 }
             case 3:
@@ -257,7 +257,7 @@ void change_value(int mode, int ifup) {
             case 2:
                 if (battery[0].voltage_terminal > 2.5){
                     battery[0].voltage_terminal -= 0.1;
-                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
+                    bms_soc.SOC = SOC_from_OCV(battery[0].voltage_terminal);
                     break;
                 }
             case 3:
