@@ -553,7 +553,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
     while(ifrunning){
         pthread_mutex_lock(&lock);
         int local_status = bms_status.Status;
-        for(int i=0; i<BATTERY_CELLS; i++) ekf.init[BATTERY_CELLS] = 0;
+        for(int i=0; i<BATTERY_CELLS; i++) ekf.init[i] = 0;
         pthread_mutex_unlock(&lock);
         if(local_status){
             usleep(300000);
@@ -624,7 +624,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 ekf.estimate_SOC_Voltagedelay[0] = soc_voltagedelay_after[0] + kalman_gain[0] * y;
                 ekf.estimate_SOC_Voltagedelay[1] = soc_voltagedelay_after[1] + kalman_gain[1] * y;
                 if(ekf.estimate_SOC_Voltagedelay[0] < 0.0) ekf.estimate_SOC_Voltagedelay[0] = 0.0;
-                else if(ekf.estimate_SOC_Voltagedelay[0] > 100.0) ekf.estimate_SOC_Voltagedelay[1] = 100.0;
+                else if(ekf.estimate_SOC_Voltagedelay[0] > 100.0) ekf.estimate_SOC_Voltagedelay[0] = 100.0;
                 //공분산 갱신 (I - kalman_gain * H) * Pp
                 double kalman_gain_h[2][2]; // K * H
                 for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) kalman_gain_h[i][j] = kalman_gain[i] * Jacobian_vector[j];
