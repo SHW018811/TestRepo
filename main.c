@@ -628,8 +628,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 //공분산 갱신 (I - kalman_gain * H) * Pp
                 double kalman_gain_h[2][2]; // K * H
                 for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) kalman_gain_h[i][j] = kalman_gain[i] * Jacobian_vector[j];
-                double I_KH[2][2] = {{1.0 - kalman_gain_h[0][0], -kalman_gain_h[0][1]},
-                                    {-kalman_gain_h[1][0], 1.0 - kalman_gain_h[1][1]}};
+                double I_KH[2][2] = {{1.0 - kalman_gain_h[0][0], -kalman_gain_h[0][1]}, {-kalman_gain_h[1][0], 1.0 - kalman_gain_h[1][1]}};
                 double update_error[2][2];
                 for(int i=0; i<2; ++i) for(int j=0; j<2; ++j) update_error[i][j] = I_KH[i][0] * ekf.Pp[0][j] + I_KH[i][1] * ekf.Pp[1][j];
                 ekf.previous_vector[0] = ekf.estimate_SOC_Voltagedelay[0];
