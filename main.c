@@ -566,7 +566,6 @@ void *charge_batterypack_thread(void *arg){         //tid5
             for(int i=0; i<BATTERY_CELLS; i++){
                 //SimulateTerminalVoltage
                 battery[i].SOC -= 1 * 1 / battery[i].capacity1c * battery[i].ChargeCurrent;
-                battery[i].SOC = SOC_from_OCV(battery[i].voltage_terminal);
                 if(battery[i].SOC < 0.) battery[i].SOC = 0.;
                 if(battery[i].SOC > 100.) battery[i].SOC = 100.;
                 double tau = battery[i].R1 * battery[i].C1;
