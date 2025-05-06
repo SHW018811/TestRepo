@@ -231,11 +231,19 @@ void change_value(int mode, int ifup) {
             case 1:
                 if (battery[0].Temperature < 127) battery[0].Temperature++; break;
             case 2:
-                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1; break;
+                if (battery[0].voltage_terminal < 4.2){
+                    battery[0].voltage_terminal += 0.1;
+                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
+                    break;
+                }
             case 3:
                 if (battery[1].Temperature < 127) battery[1].Temperature++; break;
             case 4:
-                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1; break;
+                if (battery[1].voltage_terminal < 4.2){
+                    battery[1].voltage_terminal += 0.1;
+                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
+                    break;
+                }
             default:
                 break;
         }
@@ -247,11 +255,18 @@ void change_value(int mode, int ifup) {
             case 1:
                 if (battery[0].Temperature > -127) battery[0].Temperature--; break;
             case 2:
-                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1; break;
+                if (battery[0].voltage_terminal > 2.5){
+                    battery[0].voltage_terminal -= 0.1;
+                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);
+                    break;
+                }
             case 3:
                 if (battery[1].Temperature > -127) battery[1].Temperature--; break;
             case 4:
-                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1; break;
+                if (battery[1].voltage_terminal > 2.5){
+                    battery[1].voltage_terminal -= 0.1;
+                    bms_soc.SOC = SOC_from_OCV(battery[1].voltage_terminal);break;
+                }
             default:
                 break;
         }
@@ -571,6 +586,7 @@ void *charge_batterypack_thread(void *arg){         //tid5
                 double tau = battery[i].R1 * battery[i].C1;
                 double e = exp(-1 / tau);
                 battery[i].voltage_delay = battery[i].voltage_delay * e + battery[i].R1 * (1. - e) * battery[i].ChargeCurrent;
+                //수정 필요 -> 갱신 시
                 double ocv = OCV_from_SOC(battery[i].SOC); //모두 구현 끝났다면 OCV_from_SOC 함수 가져오는 방법을 구현해놓자.
                 battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].ChargeCurrent;
                 battery[i].noiseincurrent = battery[i].ChargeCurrent;
