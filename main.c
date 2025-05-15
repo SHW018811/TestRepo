@@ -117,7 +117,6 @@ battery[
 void EKFpredict(int k){//I think error HiHEE Tot
     double local_nconstant = exp(-DELTA_TIME / (cell_data[k].R1 * cell_data[k].C1));
     //cell_data[k].SOC -> SOC Empty error
-    cell_data[k].voltage = battery[k].voltage_terminal;
     estimate[k].SOC = SocFromOcv(cell_data[k].voltage) - COULOMBIC_EFFICIENCY * DELTA_TIME / ((cell_data[k].capacity * 3600) / 100) * cell_data[k].charge_current;
     estimate[k].V1 = local_nconstant * battery[k].voltage_delay + cell_data[k].R1 * (1 - local_nconstant) * cell_data[k].charge_current;
 }
@@ -721,6 +720,7 @@ void *battery_idle_thread(void *arg) {
         battery[i].R1 = 0.01145801322 * (1 + 0.003 * diff_temperature);
 
         // simulator terminal voltage
+        battery[i].SOC -= COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
         double tau = battery[i].R1 * battery[i].C1;
         double e = exp(-1 / tau);
         battery[i].voltage_delay = battery[i].voltage_delay * e + battery[i].R1 * (1. - e) * battery[i].charge_current;
@@ -737,7 +737,7 @@ void *battery_idle_thread(void *arg) {
         cell_data[i].Temperature = battery[i].temp;
         cell_data[i].charge_current = battery[i].charge_current;
 
-        memcpy (&cell_data[i].Temperature, &battery[i], 7);
+        //memcpy (&cell_data[i].Temperature, &battery[i], 7);
     }
     pthread_mutex_unlock(&lock);
     
