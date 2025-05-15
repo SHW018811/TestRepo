@@ -644,35 +644,6 @@ void *print_screen_thread(void *arg) {              //tid3
     }
 }
 
-void *charge_batterypack_thread(void *arg) {            //tid4
-    srand(time(NULL));
-    while (ifrunning) {
-        pthread_mutex_lock(&lock);
-        int local_status = bms_status.Status;
-        pthread_mutex_unlock(&lock);
-        if (local_status) {
-            usleep (300000);
-            //choose random chance
-            int random = 0;
-            random = rand() % RANDOM_PERCENT;
-            pthread_mutex_lock(&lock);
-            //increase voltage
-            for (int i = 0 ; i < BATTERY_CELLS; i++) {
-                battery[i].voltage_terminal += 0.01;
-            }
-            //randomly increase temp for a few random cells
-            for (int j = 0; j < BATTERY_CELLS; j++) {
-                if ((rand() % RANDOM_PERCENT) == 0) {
-                    battery[j].temp += 0.5;
-                }
-            }
-            pthread_mutex_unlock(&lock);
-        } else {
-            usleep(100000);
-        }
-    }
-}
-
 // tid5
 void *temp_batterypack_thread(void *arg) {
     while(ifrunning) {                                  //every logics work on runtime, always. (if there's any input or not)ㅋ
@@ -758,6 +729,14 @@ void *battery_idle_thread(void *arg) {
         double ocv = OcvFromSoc(battery[i].SOC);
         battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
         // copy battery data to cell_data(sensor measured value)
+        cell_data[i].voltage = battery[i].voltage_terminal;
+        cell_data[i].capacity = battery[i].capacity;
+        cell_data[i].R0 = battery[i].R0;
+        cell_data[i].R1 = battery[i].R1;
+        cell_data[i].C1 = battery[i].C1;
+        cell_data[i].Temperature = battery[i].temp;
+        cell_data[i].charge_current = battery[i].charge_current;
+
         memcpy (&cell_data[i].Temperature, &battery[i], 7);
     }
     pthread_mutex_unlock(&lock);
@@ -798,7 +777,7 @@ int main(int argc, char *argv[]) {
     // Apply new settings immediately
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-    pthread_t tid1, tid2, tid3, tid4, tid5, tid6, tid7, tid8;
+    pthread_t tid1, tid2, tid3, tid4, tid6, tid7, tid8;
     
 
     pthread_mutex_init(&lock, NULL);
@@ -808,7 +787,6 @@ int main(int argc, char *argv[]) {
     pthread_create(&tid2, NULL, can_sender_thread, argv[1]);
     pthread_create(&tid3, NULL, can_receiver_thread, argv[1]);
     pthread_create(&tid4, NULL, print_screen_thread, NULL);
-    pthread_create(&tid5, NULL, charge_batterypack_thread, NULL);
     pthread_create(&tid6, NULL, temp_batterypack_thread, NULL);
     pthread_create(&tid7, NULL, voltage_batterypack_thread, NULL);
     pthread_create(&tid8, NULL, battery_idle_thread, NULL);
@@ -818,7 +796,6 @@ int main(int argc, char *argv[]) {
     pthread_join(tid2, NULL);
     pthread_join(tid3, NULL);
     pthread_join(tid4, NULL);
-    pthread_join(tid5, NULL);
     pthread_join(tid6, NULL);
     pthread_join(tid7, NULL);
     pthread_join(tid8, NULL);
