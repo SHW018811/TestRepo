@@ -180,6 +180,9 @@ void SOCEKF(){
         for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
             local_error[k][j] = local_I_KH[k][0] * battery_state[i].Pp[0][j] + local_I_KH[k][1] * battery_state[i].Pp[1][j];
         }
+        battery[i].voltage_terminal = estimate[i].Voltage_terminal;
+        battery[i].SOC = estimate[i].SOC;
+        battery[i].V1 = estimate[i].V1;
         memcpy(battery_state[i].P, local_error, sizeof(battery_state[i].P));
     }
 }
