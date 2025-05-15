@@ -112,10 +112,12 @@ functions for calculate SOC
 /*================================================================
 battery[
 =================================================================*/
-
-void EKFpredict(int k){
+//Todo -> HiHee
+//SocFromOcv Error change
+void EKFpredict(int k){//I think error HiHEE Tot
     double local_nconstant = exp(-DELTA_TIME / (cell_data[k].R1 * cell_data[k].C1));
     //cell_data[k].SOC -> SOC Empty error
+    cell_data[k].voltage = battery[k].voltage_terminal;
     estimate[k].SOC = SocFromOcv(cell_data[k].voltage) - COULOMBIC_EFFICIENCY * DELTA_TIME / ((cell_data[k].capacity * 3600) / 100) * cell_data[k].charge_current;
     estimate[k].V1 = local_nconstant * battery[k].voltage_delay + cell_data[k].R1 * (1 - local_nconstant) * cell_data[k].charge_current;
 }
