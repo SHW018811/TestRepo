@@ -742,7 +742,8 @@ void *battery_idle_thread(void *arg) {
         cell_data[i].C1 = battery[i].C1;
         cell_data[i].Temperature = battery[i].temp;
         cell_data[i].charge_current = battery[i].charge_current;
-
+        bms_battery_info.Voltage = cell_data[i].voltage;
+        bms_soc.SOC = battery[i].SOC;
         //memcpy (&cell_data[i].Temperature, &battery[i], 7);
     }
     pthread_mutex_unlock(&lock);
