@@ -664,17 +664,16 @@ void *voltage_batterypack_thread(void *arg) {
 }
 //tid8
 void *battery_idle_thread(void *arg) {
-    void *battery_idle_thread(void *arg) {
-        while (ifrunning) {
-            pthread_mutex_lock(&lock);
-            Update_Temperature();
-            Update_Resistance();
-            SimulateTerminalVoltage();
-            pthread_mutex_unlock(&lock);
-    
-            usleep(SLEEPTIME);
-        }
+    while (ifrunning) {
+        pthread_mutex_lock(&lock);
+        Update_Temperature();
+        Update_Resistance();
+        SimulateTerminalVoltage();
+        pthread_mutex_unlock(&lock);
+
+        usleep(SLEEPTIME);
     }
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
