@@ -182,9 +182,9 @@ void SOCEKF(){
         for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
             local_error[k][j] = local_I_KH[k][0] * battery_state[i].Pp[0][j] + local_I_KH[k][1] * battery_state[i].Pp[1][j];
         }
-        battery[i].voltage_terminal = estimate[i].Voltage_terminal;
-        battery[i].SOC = estimate[i].SOC;
-        battery[i].V1 = estimate[i].V1;
+        // battery[i].voltage_terminal = estimate[i].Voltage_terminal;
+        // battery[i].SOC = estimate[i].SOC;
+        // battery[i].V1 = estimate[i].V1;
         memcpy(battery_state[i].P, local_error, sizeof(battery_state[i].P));
     }
 }
@@ -742,8 +742,6 @@ void *battery_idle_thread(void *arg) {
         cell_data[i].C1 = battery[i].C1;
         cell_data[i].Temperature = battery[i].temp;
         cell_data[i].charge_current = battery[i].charge_current;
-        bms_battery_info.Voltage = cell_data[i].voltage;
-        bms_soc.SOC = battery[i].SOC;
         //memcpy (&cell_data[i].Temperature, &battery[i], 7);
     }
     pthread_mutex_unlock(&lock);
