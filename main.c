@@ -350,18 +350,6 @@ void PrintLogo(int option) {
     }
 }
 
-
-double GetCorrectVoltage(double battery_temp) {           // no mutex lock
-    double correct = 0;
-    if (battery_temp >= 45) correct = -0.02;
-    else if (battery_temp >= 12 && battery_temp < 45) correct = 0;
-    else if (battery_temp >= -10 && battery_temp < 12) correct = 0.02;
-    else if (battery_temp < -10) correct = 0.04;
-    return correct;
-}
-
-
-
 CAN_Message can_msgs[MAX_STRUCTS] = {
     {0x620, {0}, 8},        //bms_company_info
     {0x621, {0}, 8},        //vin_car_info
@@ -442,7 +430,8 @@ void SimInitializer() {
     if (air_temp > 127) air_temp = 127;
 
     pthread_mutex_lock(&lock);
-    default_battery.voltage_terminal = OcvFromSoc(soc);
+    default_battery.SOC = soc;
+    default_battery.voltage_terminal = SocFromOcv(soc);
     bms_temperature.AirTemp = air_temp;
     pthread_mutex_unlock(&lock);
 }
@@ -648,32 +637,12 @@ void *print_screen_thread(void *arg) {              //tid3
 // tid5
 void *temp_batterypack_thread(void *arg) {
 }
-void *voltage_batterypack_thread(void *arg) {
-    while (ifrunning) {
-        if (bms_status.Status) {
-            pthread_mutex_lock(&lock);
-            SOCEKF();              // EKF로 SOC/V1 예측
-            ChargeCurrentLimits(); // 예측값 기준으로 Charge_Current 설정
-            pthread_mutex_unlock(&lock);
 
-            usleep(INTERVAL_TIME);
-        } else {
-            usleep(SLEEPTIME);
-        }
-    }
+void *voltage_batterypack_thread(void *arg) {
 }
+
 //tid8
 void *battery_idle_thread(void *arg) {
-    while (ifrunning) {
-        pthread_mutex_lock(&lock);
-        Update_Temperature();
-        Update_Resistance();
-        SimulateTerminalVoltage();
-        pthread_mutex_unlock(&lock);
-
-        usleep(SLEEPTIME);
-    }
-    return NULL;
 }
 
 int main(int argc, char *argv[]) {
@@ -691,7 +660,6 @@ int main(int argc, char *argv[]) {
     SimInitializer();
 
     InitBatteryArray();
-    bms_status.Status = 1; // start charging simulation by default
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");

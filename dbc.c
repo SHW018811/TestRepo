@@ -79,14 +79,14 @@ BMS_DC_Charging_t bms_dc_charging = {
 
 Battery_t default_battery = {
     .temp = 0x19,
-    .R0 = 0.00005884314f,
-    .R1 = 0.011f,
-    .C1 = 4846.080679f,
+    .R0 = 0.00005884314,
+    .R1 = 0.001145801322,
+    .C1 = 4846.080679,
     .capacity = CELL_CAPACITY,
-    .charge_current = -0.41f,
-    .voltage_terminal = 0x0000,
-    .voltage_delay = 0x0000,
-    .SOC = 0x0000
+    .charge_current = -0.41,
+    .voltage_terminal = 0,
+    .voltage_delay = 0,
+    .SOC = 0
 };
 
 Battery_t battery[BATTERY_CELLS];
