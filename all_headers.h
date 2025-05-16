@@ -52,7 +52,7 @@ all_headers.h
 //MACROS for setting default values for dbc
 #define BATTERY_CELLS 192
 #define VOLTAGE_MIN 2.5
-#define VOLTAGE_MAX 4.5
+#define VOLTAGE_MAX 4.2
 #define CELLS_IN_LINE 10
 #define CELL_CAPACITY 4.07611
 #define SOC_TAPER_START 80.0
