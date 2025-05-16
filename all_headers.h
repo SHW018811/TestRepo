@@ -54,12 +54,12 @@ all_headers.h
 #define VOLTAGE_MIN 2.5
 #define VOLTAGE_MAX 4.5
 #define CELLS_IN_LINE 10
-#define CELL_CAPACITY 4.07611f
+#define CELL_CAPACITY 4.07611
 #define SOC_TAPER_START 80.0
 #define SOC_TAPER_END 98.0
 
-#define COULOMBIC_EFFICIENCY 1
-#define DELTA_TIME 1
+#define COULOMBIC_EFFICIENCY 1.0
+#define DELTA_TIME 1.0
 
 //userdefined headers
 #include "dbc.h"

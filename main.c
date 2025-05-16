@@ -117,7 +117,8 @@ battery[
 void EKFpredict(int k){//I think error HiHEE Tot
     double local_nconstant = exp(-DELTA_TIME / (cell_data[k].R1 * cell_data[k].C1));
     //cell_data[k].SOC -> SOC Empty error
-    estimate[k].SOC = SocFromOcv(cell_data[k].voltage) - COULOMBIC_EFFICIENCY * DELTA_TIME / ((cell_data[k].capacity * 3600) / 100) * cell_data[k].charge_current;
+    //estimate[k].SOC = SocFromOcv(cell_data[k].voltage) - COULOMBIC_EFFICIENCY * DELTA_TIME / ((cell_data[k].capacity * 3600) / 100) * cell_data[k].charge_current;
+    estimate[k].SOC = battery[k].SOC - COULOMBIC_EFFICIENCY * DELTA_TIME / ((cell_data[k].capacity * 3600) / 100) * cell_data[k].charge_current;
     estimate[k].V1 = local_nconstant * battery[k].voltage_delay + cell_data[k].R1 * (1 - local_nconstant) * cell_data[k].charge_current;
 }
 
@@ -143,6 +144,7 @@ void SOCEKF(){
             battery_state[i].P[0][0] = 3000.0; battery_state[i].P[0][1] = 0.0;
             battery_state[i].P[1][0] = 0.0; battery_state[i].P[1][1] = 3000.0;
             battery_state[i].init = 1;
+            //battery[i].SOC, battery[i].voltage_delay
         }
         EKFpredict(i);
         /*
@@ -156,7 +158,7 @@ void SOCEKF(){
         }
         //Compute Pp -> F * P * F^T + Q (T meaning -> [0][2] makes -> [2][0] matrix)
         for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
-            battery_state[i].Pp[k][j] = local_FP[k][j] * battery_state[i].F[j][0] + local_FP[k][1] * battery_state[i].F[j][1] + battery_state[i].Q[k][j];
+            battery_state[i].Pp[k][j] = local_FP[k][0] * battery_state[i].F[j][0] + local_FP[k][1] * battery_state[i].F[j][1] + battery_state[i].Q[k][j];
         }
         //Linearize nonlinearity through gradient
         ComputeJacobianH(i, local_H);
@@ -724,11 +726,12 @@ void *battery_idle_thread(void *arg) {
 
         // simulator terminal voltage
         battery[i].SOC -= COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
+        if(battery[i].SOC < 0.) battery[i].SOC = 0.0;
+        if(battery[i].SOC > 100.) battery[i].SOC = 100.0;
         double tau = battery[i].R1 * battery[i].C1;
-        double e = exp(-1 / tau);
+        double e = exp(-DELTA_TIME / tau);
         battery[i].voltage_delay = battery[i].voltage_delay * e + battery[i].R1 * (1. - e) * battery[i].charge_current;
 
-        
         double ocv = OcvFromSoc(battery[i].SOC);
         battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
         // copy battery data to cell_data(sensor measured value)
