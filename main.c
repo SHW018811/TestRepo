@@ -57,57 +57,57 @@ int g_iftempfan = 0;      //if temp fan works
 functions for calculate SOC
 =================================================================*/
 
-void Init_Battery(){
-    double local_Capacity1c = 0;
-    for(int i=0; i<BATTERY_CELLS; i++){
-        battery[i].SOC = SocFromOcv(charge_ocv[0]);
-        battery[i].V1 = 0;
-        battery[i].Charge_Current = -0.41;
-        battery[i].Capacity = 4.07611;
-        local_Capacity1c = (battery[i].Capacity * 3600) / 100;
-        battery[i].R0 = 0.00005884314;
-        battery[i].R1 = 0.01145801322;
-        battery[i].C1 = 4846.080679;
-        battery[i].Voltage_terminal = battery[i].Charge_Current * battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)));
-        battery[i].Temperature = 25;
-        estimate[i].SOC = battery[i].SOC;
-        estimate[i].V1 = battery[i].V1;
-        estimate[i].Voltage_terminal = 0;
-    }
-}
+// void Init_Battery(){
+//     double local_Capacity1c = 0;
+//     for(int i=0; i<BATTERY_CELLS; i++){
+//         battery[i].SOC = SocFromOcv(charge_ocv[0]);
+//         battery[i].V1 = 0;
+//         battery[i].Charge_Current = -0.41;
+//         battery[i].Capacity = 4.07611;
+//         local_Capacity1c = (battery[i].Capacity * 3600) / 100;
+//         battery[i].R0 = 0.00005884314;
+//         battery[i].R1 = 0.01145801322;
+//         battery[i].C1 = 4846.080679;
+//         battery[i].Voltage_terminal = battery[i].Charge_Current * battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)));
+//         battery[i].Temperature = 25;
+//         estimate[i].SOC = battery[i].SOC;
+//         estimate[i].V1 = battery[i].V1;
+//         estimate[i].Voltage_terminal = 0;
+//     }
+// }
 
-void Update_Temperature(){
-    double local_airtemp = 0.0; //Air temperature
-    double internal_heat[BATTERY_CELLS];
-    double heater_on, cooler_on, total_heat[BATTERY_CELLS];
-    for(int i=0; i<BATTERY_CELLS; i++){
-        internal_heat[i] = battery[i].R0 * pow(battery[i].Charge_Current, 2);
-        heater_on = (battery[i].Temperature < HEATER_ON_TEMP)? HEAT_COOL_POWER : 0;
-        cooler_on = (battery[i].Temperature > COOLER_ON_TEMP)? HEAT_COOL_POWER : 0;
-        total_heat[i] = internal_heat[i] + heater_on - cooler_on;
-        battery[i].Temperature += DELTA_TIME / 200 * (total_heat[i] - (battery[i].Temperature - local_airtemp) / 3);
-    }
-}
+// void Update_Temperature(){
+//     double local_airtemp = 0.0; //Air temperature
+//     double internal_heat[BATTERY_CELLS];
+//     double heater_on, cooler_on, total_heat[BATTERY_CELLS];
+//     for(int i=0; i<BATTERY_CELLS; i++){
+//         internal_heat[i] = battery[i].R0 * pow(battery[i].Charge_Current, 2);
+//         heater_on = (battery[i].Temperature < HEATER_ON_TEMP)? HEAT_COOL_POWER : 0;
+//         cooler_on = (battery[i].Temperature > COOLER_ON_TEMP)? HEAT_COOL_POWER : 0;
+//         total_heat[i] = internal_heat[i] + heater_on - cooler_on;
+//         battery[i].Temperature += DELTA_TIME / 200 * (total_heat[i] - (battery[i].Temperature - local_airtemp) / 3);
+//     }
+// }
 
-void Update_Resistance(){
-    const double local_R0_reference = 0.00005884314;
-    const double local_R1_reference = 0.01145801322;
-    const double local_coeff = 0.003;
-    for(int i=0; i<BATTERY_CELLS; i++){
-        battery[i].R0 = local_R0_reference * (1 + local_coeff * (battery[i].Temperature - 25));
-        battery[i].R1 = local_R1_reference * (1 + local_coeff * (battery[i].Temperature - 25));
-    }
-}
+// void Update_Resistance(){
+//     const double local_R0_reference = 0.00005884314;
+//     const double local_R1_reference = 0.01145801322;
+//     const double local_coeff = 0.003;
+//     for(int i=0; i<BATTERY_CELLS; i++){
+//         battery[i].R0 = local_R0_reference * (1 + local_coeff * (battery[i].Temperature - 25));
+//         battery[i].R1 = local_R1_reference * (1 + local_coeff * (battery[i].Temperature - 25));
+//     }
+// }
 
-void SimulateTerminalVoltage(){
-    for(int i=0; i<BATTERY_CELLS; i++){
-        battery[i].SOC -= COULOMIC_EFFICIENCY * DELTA_TIME / ((battery[i].Capacity * 3600) / 100) * battery[i].Charge_Current;
-        if(battery[i].SOC < 0) battery[i].SOC = 0;
-        if(battery[i].SOC > 100) battery[i].SOC = 100;
-        battery[i].V1 = battery[i].V1 * exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)) + battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1))) * battery[i].Charge_Current;
-        battery[i].Voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].V1 - battery[i].R0 * battery[i].Charge_Current;
-    }
-}
+// void SimulateTerminalVoltage(){
+//     for(int i=0; i<BATTERY_CELLS; i++){
+//         battery[i].SOC -= COULOMIC_EFFICIENCY * DELTA_TIME / ((battery[i].Capacity * 3600) / 100) * battery[i].Charge_Current;
+//         if(battery[i].SOC < 0) battery[i].SOC = 0;
+//         if(battery[i].SOC > 100) battery[i].SOC = 100;
+//         battery[i].V1 = battery[i].V1 * exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)) + battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1))) * battery[i].Charge_Current;
+//         battery[i].Voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].V1 - battery[i].R0 * battery[i].Charge_Current;
+//     }
+// }
 
 /*================================================================
 battery[
