@@ -806,14 +806,16 @@ void *voltage_batterypack_thread(void *arg) {
                 if(estimate[i].SOC < 0.0) estimate[i].SOC = 0.0;
                 else if(estimate[i].SOC > 100.0) estimate[i].SOC = 100.0;
                 //공분산 갱신 (I - kalman_gain * H) * Pp
-                double kalman_gain_h[2][2]; // K * H
-                for(int k=0; k<2; ++k) for(int j=0; j<2; ++j) kalman_gain_h[k][j] = kalman_gain[k] * local_H[j];
-                double I_KH[2][2] = {{1.0 - kalman_gain_h[0][0], -kalman_gain_h[0][1]}, {-kalman_gain_h[1][0], 1.0 - kalman_gain_h[1][1]}};
+                double local_I_KH[2][2];
+                local_I_KH[0][0] = 1.0 - kalman_gain[0] * local_H[0];
+                local_I_KH[0][1] = -kalman_gain[0] * local_H[1];
+                local_I_KH[1][0] = -kalman_gain[1] * local_H[0];
+                local_I_KH[1][1] = 1.0 - kalman_gain[1] * local_H[1];
                 double update_error[2][2];
                 for(int k=0; k<2; ++k) for(int j=0; j<2; ++j) update_error[k][j] = local_I_KH[k][0] * battery_state[i].Pp[0][j] + local_I_KH[k][1] * battery_state[i].Pp[1][j];
                 
                 battery[i].SOC = estimate[i].SOC;
-                battery[i].voltage_terminal = estimate[i].V1;
+                battery[i].voltage_terminal = OcvFromSoc(estimate[i].SOC) - estimate[i].V1 - battery[i].R0 * battery[i].charge_current;
             }
             pthread_mutex_unlock(&lock);
         }
