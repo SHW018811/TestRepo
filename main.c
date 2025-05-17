@@ -706,7 +706,7 @@ void *temp_batterypack_thread(void *arg) {
             double e = exp(-DELTA_TIME / tau);
             battery[i].voltage_delay = battery[i].voltage_delay * e + battery[i].R1 * (1. - e) * battery[i].charge_current;
             //수정 필요 -> 갱신 시
-            double ocv = OCV_from_SOC(battery[i].SOC); //모두 구현 끝났다면 OCV_from_SOC 함수 가져오는 방법을 구현해놓자.
+            double ocv = OcvFromSoc(battery[i].SOC); //모두 구현 끝났다면 OCV_from_SOC 함수 가져오는 방법을 구현해놓자.
             battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
             if(minreg0id > battery[i].R0){
                 minreg0 = battery[i].R0;
