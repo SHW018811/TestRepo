@@ -66,8 +66,8 @@ all_headers.h
 #define R0_REFERENCE 0.00005884314
 #define R1_REFERENCE 0.01145801322
 #define R_COEFF 0.003
-#define HYSTERSIS 0.01;
-#define VOLTAGE_CONTROL 50;
+#define HYSTERSIS 0.01
+#define VOLTAGE_CONTROL 50
 //userdefined headers
 #include "dbc.h"
 #include "./ocv_soc/ocv_soc_t.h"
