@@ -529,6 +529,7 @@ void SimulateTerminalVoltage(int i){
     if(battery[i].SOC > 100.0) battery[i].SOC = 100;
     battery[i].voltage_delay = battery[i].voltage_delay * exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)) + battery[i].R1 * ( 1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1))) * battery[i].charge_current;
     battery[i].voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
+    bms_soc.SOC = battery[i].SOC;
 }
 
 void EKFpredict(int i){
@@ -591,6 +592,15 @@ void SOCEKF(int i){
     memcpy(battery_state[i].P, local_error, sizeof(battery_state[i].P));
     
 }
+
+/* Todo list [Hi_Hee]
+    Charging voltage update complete -> Check [ O ]
+    Battery SOC not enable battery bar -> Check [ X ]
+    Battery voltage final line need change -> Check [ X ]
+    Battery charging speed is to low -> Check [ X ]
+    Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ X ]
+    Arrow keyboard change value to voltage not enable -> Check [ X ]
+*/
 
 void *ekf_thread(void *arg){                        //tid5
     while(ifrunning){
