@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -g
 LDFLAGS = -lpthread -lm
 INCLUDES = -I.
 
-SRCS = main.c dbc.c ./ocv_soc/ocv_soc_t.c
+SRCS = main.c dbc.c ./ocv_soc/ocv_soc_t.c ./EKF_SOC/EKF_SOC.c
 OBJS = $(SRCS:.c=.o)
 
 TARGET = bms_simulator
