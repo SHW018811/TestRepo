@@ -766,8 +766,8 @@ void *voltage_batterypack_thread(void *arg) {
                 }
                 //EKFpredict
                 double local_nconstant = exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1));
-                estimate[i].SOC = battery[i-1].SOC - COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
-                estimate[i].V1 = local_nconstant * battery[i-1].voltage_delay + battery[i].R1 * (1.0 - local_nconstant) * battery[i].charge_current;
+                estimate[i].SOC = battery[i].SOC - COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
+                estimate[i].V1 = local_nconstant * battery[i].voltage_delay + battery[i].R1 * (1.0 - local_nconstant) * battery[i].charge_current;
 
                 //Pp = F * P * F^T + Q Update
                 for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
