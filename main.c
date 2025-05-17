@@ -799,7 +799,7 @@ void *voltage_batterypack_thread(void *arg) {
                 double kalman_gain[2] = {local_HP[0] / kalman_gain_denom, local_HP[1] / kalman_gain_denom};
 
                 //residual 예측치 신뢰도 구하기
-                double predict_voltage_terminal = OCV_from_SOC(estimate[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
+                double predict_voltage_terminal = OcvFromSoc(estimate[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
                 local_y = battery[i].voltage_terminal - predict_voltage_terminal;
                 estimate[i].SOC += kalman_gain[0] * local_y;
                 estimate[i].V1 += kalman_gain[1] * local_y;
