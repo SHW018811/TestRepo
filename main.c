@@ -1,5 +1,6 @@
 
 /*================================================================
+TestRepo Code
 main.c
 This program is a CAN packet sender which updates BMS status live-on-time.
 
@@ -268,7 +269,6 @@ void PrintCell() {
     pthread_mutex_lock(&lock);
     for (int i = 0; i < BATTERY_CELLS; i++) {
         temp[i] = battery[i].temp;
-        //voltage[i] = battery[i].batteryvoltage;
         voltage[i] = battery[i].voltage_terminal;
     }
     int local_status = bms_status.Status;
@@ -634,15 +634,255 @@ void *print_screen_thread(void *arg) {              //tid3
     }
 }
 
+
+// void *charge_batterypack_thread(void *arg) {            //tid4
+//     srand(time(NULL));
+//     while (ifrunning) {
+//         pthread_mutex_lock(&lock);
+//         int local_status = bms_status.Status;
+//         pthread_mutex_unlock(&lock);
+//         if (local_status) {
+//             usleep (300000);
+//             //choose random chance
+//             int random = 0;
+//             random = rand() % RANDOM_PERCENT;
+//             pthread_mutex_lock(&lock);
+//             //increase voltage
+//             for (int i = 0 ; i < BATTERY_CELLS; i++) {
+//                 battery[i].voltage_terminal += 0.01;
+//             }
+//             //randomly increase temp for a few random cells
+//             for (int j = 0; j < BATTERY_CELLS; j++) {
+//                 if ((rand() % RANDOM_PERCENT) == 0) {
+//                     battery[j].temp += 0.5;
+//                 }
+//             }
+//             pthread_mutex_unlock(&lock);
+//         } else {
+//             usleep(100000);
+//         }
+//     }
+// }
+
 // tid5
 void *temp_batterypack_thread(void *arg) {
+    while(ifrunning){
+        usleep(INTERVAL_TIME);
+        double mintemp = 1e9, maxtemp = -1e9;
+        int mintempid = 0, maxtempid = 0;
+        double totaltemps = 0, internal_heat = 0;
+        double heater_power_w = 5.0, cooler_power_w = 5.0;
+        double totalreg0 = 0, totalreg1 = 0;
+        double minreg0 = 1e9, maxreg0 = -1e9;
+        int minreg0id = 0, maxreg0id = 0;
+        double local_terminal_voltage[BATTERY_CELLS];
+        usleep(500000);
+
+        pthread_mutex_lock(&lock);
+        for(int i=0; i<BATTERY_CELLS; i++){
+            //UpdateTemperature && UpdateResistance
+            // Update UpdateTemperature fucntion
+            internal_heat = battery[i].R0 * pow(battery[i].charge_current,2);
+            double heater_power = (battery[i].temp <= 15)? heater_power_w : 0;
+            double cooler_power = (battery[i].temp >= 35)? cooler_power_w : 0;
+            double totalheat = internal_heat + heater_power - cooler_power;
+            if(heater_power != 0) g_iftempfan = 2;
+            else if(cooler_power != 0) g_iftempfan = 1;
+            else g_iftempfan = 0;
+            battery[i].temp += (1.0 / 200.0 * (totalheat - (battery[i].temp - bms_temperature.AirTemp) / 3.0));
+            double diff_temperature = battery[i].temp - 25;
+        
+            // Update UpdateResistance Function
+            battery[i].R0 = 0.00005884314 * (1 + 0.003 * diff_temperature);
+            battery[i].R1 = 0.01145801322 * (1 + 0.003 * diff_temperature);
+            totalreg0 += battery[i].R0;
+            totalreg1 += battery[i].R1;
+
+            // Update SimulateTerminalVoltage fucntion
+            battery[i].SOC -= COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
+            if(battery[i].SOC < 0.) battery[i].SOC = 0.;
+            if(battery[i].SOC > 100.) battery[i].SOC = 100.;
+            double tau = battery[i].R1 * battery[i].C1;
+            double e = exp(-DELTA_TIME / tau);
+            battery[i].voltage_delay = battery[i].voltage_delay * e + battery[i].R1 * (1. - e) * battery[i].charge_current;
+            //수정 필요 -> 갱신 시
+            double ocv = OCV_from_SOC(battery[i].SOC); //모두 구현 끝났다면 OCV_from_SOC 함수 가져오는 방법을 구현해놓자.
+            battery[i].voltage_terminal = ocv - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
+            if(minreg0id > battery[i].R0){
+                minreg0 = battery[i].R0;
+                minreg0id = i + 1;
+            }
+            if(maxreg0 < battery[i].R0){
+                maxreg0 = battery[i].R0;
+                maxreg0id = i + 1;
+            }
+            if(mintemp > battery[i].temp){
+                mintemp = battery[i].temp;
+                mintempid = i + 1;
+            }
+            if(maxtemp < battery[i].temp){
+                maxtemp = battery[i].temp;
+                maxtempid = i + 1;
+            }
+            totaltemps += battery[i].temp;
+        }
+        bms_temperature.Temperature = (int)(totaltemps / BATTERY_CELLS);
+        bms_temperature.MaxTemp = maxtemp;
+        bms_temperature.MaxTempID = maxtempid;
+        bms_temperature.MinTemp = mintemp;
+        bms_temperature.MinTempID = mintempid;
+        bms_resistance.Resistance0 = (totalreg0 / BATTERY_CELLS);
+        bms_resistance.Resistance1 = (totalreg1 / BATTERY_CELLS);
+        bms_resistance.MaxResistanceID = maxreg0id;
+        bms_resistance.MinResistanceID = minreg0id;
+        pthread_mutex_unlock(&lock);
+    }
 }
 
 void *voltage_batterypack_thread(void *arg) {
+    double local_FP[2][2], local_Pp[2][2], local_H[2], local_HP[2], local_y, local_I_KH[2][2],local_error[2][2];                                    // ToDoLiSt[hihee]: local_Pp
+    while(ifrunning){
+        pthread_mutex_lock(&lock);
+        int local_status = bms_status.Status;
+        for(int i=0; i<BATTERY_CELLS; i++) battery_state[i].init = 0;
+        pthread_mutex_unlock(&lock);
+        if(local_status){
+            usleep(300000);
+            pthread_mutex_lock(&lock);
+            for(int i=0; i<BATTERY_CELLS; i++){
+                if(!battery_state[i].init){
+                    //F:상태 전이 행렬, Q:시스템 노이즈(예측 불확실성), P:추정 오차 공분산, Pp:예측 공분산
+                    battery_state[i].F[0][0] = 1.0; battery_state[i].F[0][1] = 0.0;
+                    battery_state[i].F[1][0] = 0.0; battery_state[i].F[1][1] = exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1));
+                    battery_state[i].Q[0][0] = 0.0000001; battery_state[i].Q[0][1] = 0.0;
+                    battery_state[i].Q[1][0] = 0.0; battery_state[i].Q[1][1] = 0.0000001;
+                    battery_state[i].R = 500.0;
+                    battery_state[i].P[0][0] = 3000.0; battery_state[i].P[0][1] = 0.0;
+                    battery_state[i].P[1][0] = 0.0; battery_state[i].P[1][1] = 3000.0;
+                    battery[i].SOC = default_battery.SOC;
+                    battery[i].voltage_delay = default_battery.voltage_delay;
+                    battery_state.init[i] = 1;
+                    continue;
+                }
+                //EKFpredict
+                double local_nconstant = exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1));
+                estimate[i].SOC = battery[i-1].SOC - COULOMBIC_EFFICIENCY * DELTA_TIME / ((battery[i].capacity * 3600) / 100) * battery[i].charge_current;
+                estimate[i].V1 = local_nconstant * battery[i-1].voltage_delay + battery[i].R1 * (1.0 - local_nconstant) * battery[i].charge_current;
+
+                //Pp = F * P * F^T + Q Update
+                for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
+                    local_FP[k][j] = battery_state[i].F[k][0] * battery_state[i].P[0][j] + battery_state[i].F[k][1] * battery_state[i].P[1][j];
+                }
+                //Compute Pp -> F * P * F^T + Q (T meaning -> [0][2] makes -> [2][0] matrix)
+                for(int k=0; k<2; ++k) for(int j=0; j<2; ++j){
+                    battery_state[i].Pp[k][j] = local_FP[k][j] * battery_state[i].F[j][0] + local_FP[k][1] * battery_state[i].F[j][1] + battery_state[i].Q[k][j];
+                }
+
+                //ComputeJacobianH
+                double soc_hi = estimate[i].SOC + 0.05;
+                double soc_low = estimate[i].SOC - 0.05;
+                if(soc_hi > 100.0) soc_hi = 100.0;
+                if(soc_low < 0.0) soc_low = 0.0;
+                double ocv_hi = OCV_from_SOC(soc_hi);
+                double ocv_low = OCV_from_SOC(soc_low);
+                local_H[0] = (ocv_hi - ocv_low) / (soc_hi - soc_low);
+                local_H[1] = -1.0;
+                if(fabs(local_H[0]) < 1e-4f) local_H[0] = (local_H[0] >= 0)? 1e-4f : -1e-4f;
+
+                //HP -> H * Pp
+                local_HP[0] = local_H[0] * battery_state[i].Pp[0][0] + local_H[1] * battery_state[i].Pp[1][0];
+                local_HP[1] = local_H[0] * battery_state[i].Pp[0][1] + local_H[1] * battery_state[i].Pp[1][1];
+
+
+                //칼만 이득 분모값 구하기 H * Pp * (H^T + R) T는 역행렬
+                double kalman_gain_denom = local_HP[0] * local_H[0] + local_HP[1] * local_H[1] + battery_state[i].R;
+                double kalman_gain[2] = {local_HP[0] / kalman_gain_denom, local_HP[1] / kalman_gain_denom};
+
+                //residual 예측치 신뢰도 구하기
+                double predict_voltage_terminal = OCV_from_SOC(estimate[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
+                local_y = battery[i].voltage_terminal - predict_voltage_terminal;
+                estimate[i].SOC += kalman_gain[0] * y;
+                estimate[i].V1 += kalman_gain[1] * y;
+                if(estimate[i].SOC < 0.0) battery_state.estimate_SOC_Voltagedelay[0] = 0.0;
+                else if(estimate[i].SOC > 100.0) battery_state.estimate_SOC_Voltagedelay[0] = 100.0;
+                //공분산 갱신 (I - kalman_gain * H) * Pp
+                double kalman_gain_h[2][2]; // K * H
+                for(int k=0; k<2; ++k) for(int j=0; j<2; ++j) kalman_gain_h[k][j] = kalman_gain[k] * local_H[j];
+                double I_KH[2][2] = {{1.0 - kalman_gain_h[0][0], -kalman_gain_h[0][1]}, {-kalman_gain_h[1][0], 1.0 - kalman_gain_h[1][1]}};
+                double update_error[2][2];
+                for(int k=0; k<2; ++k) for(int j=0; j<2; ++j) update_error[k][j] = local_I_KH[k][0] * battery_state[i].Pp[0][j] + local_I_KH[k][1] * battery_state[i].Pp[1][j];
+                
+                battery[i].SOC = estimate[i].SOC;
+                battery[i].voltage_terminal = estimate[i].V1;
+            }
+            pthread_mutex_unlock(&lock);
+        }
+    }
 }
 
 //tid8
 void *battery_idle_thread(void *arg) {
+    //maybe change fucntion name -> ChargeCurrentLimit
+    while(ifrunning){
+        double total_corrected_voltage = 0;
+        double minvoltage = 1e9;
+        double minvoltageid = 0;
+        double maxvoltage = -1e9;
+        double maxvoltageid = 0;
+        usleep(100000);
+        pthread_mutex_lock(&lock);
+        ifvoltageerror = 0;
+        const double voltage_max_charge = 4.200;
+        for(int i=0; i<BATTERY_CELLS; i++){
+            double charge_current_cc = -1.0 * battery[i].capacity;
+            double charge_current_min_CV = -0.05 * battery[i].capacity;
+            double voltage_hysteresis = 0.010;
+            double voltage_control = 50.0; //P-gain 전압
+            double charge_current_limits = charge_current_cc;
+            if(estimate[i].SOC > 80.0){
+                double SOC_TAPER_RATIO = (estimate[i].SOC - 80.0) / (98.0 - 80.0);
+                if(SOC_TAPER_RATIO > 1.0) SOC_TAPER_RATIO = 1.0;
+                charge_current_limits = charge_current_cc * (1.0 - 0.8 * SOC_TAPER_RATIO);
+            }
+            if(battery[i].voltage_terminal >= voltage_max_charge - voltage_hysteresis){
+                charge_current_limits = charge_current_cc + voltage_control * (battery[i].voltage_terminal - voltage_max_charge);
+                if(charge_current_limits < charge_current_min_CV) charge_current_limits = charge_current_min_CV;
+                if(charge_current_limits > 0.0) charge_current_limits = 0.0;
+            }
+            if(battery[i].temp< 0.0) charge_current_limits = 0.0;
+            else if(battery[i].temp < 15.0) charge_current_limits *= 0.5; //50% 제한
+            battery[i].chargecurrent = charge_current_limits;
+            battery[i].SOC = estimate[i].SOC;
+            battery[i].voltage_terminal = estimate[i].V1;
+            //최종 셀 soc, voltage
+            if(minvoltage > estimate[i].V1){
+                minvoltage = estimate[i].V1;
+                minvoltageid = i + 1;
+            }
+            if(maxvoltage < estimate[i].V1){
+                maxvoltage = estimate[i].V1;
+                maxvoltageid = i + 1;
+            }
+            if(estimate[i].V1 > VOLTAGE_MAX || estimate[i].V1 < VOLTAGE_MIN) ifvoltageerror = 1;
+            else ifvoltageerror = 0;
+        } //셀 추가 시 +로 변경 후 셀 개수 만큼 나누면 될 듯 함... + estimate_SOC_Voltage[BatSIZE][1]
+        double totalSOC = 0;
+        for(int i=0; i<BATTERY_CELLS; i++) totalSOC += battery[i].SOC;
+        totalSOC /= BATTERY_CELLS;
+        if(totalSOC >= 100.0) totalSOC = 100;
+        if(totalSOC <= 0.0) totalSOC = 0; 
+        bms_soc.SOC = (uint8_t)totalSOC[0];
+        //bms_soc.DOD =
+        double totalVolt = 0;
+        for(int i=0; i<BATTERY_CELLS; i++) totalVolt += battery[i].voltage_terminal;
+        totalVolt /= BATTERY_CELLS;
+        bms_battery_info.Voltage = (uint16_t)(totalVolt);
+        bms_battery_info.MinVoltage = (uint8_t)(minvoltage * 10);
+        bms_battery_info.MinVoltageID = minvoltageid;
+        bms_battery_info.MaxVoltage = (uint8_t)(maxvoltage * 10);
+        bms_battery_info.MaxVoltageID = maxvoltageid;
+        pthread_mutex_unlock(&lock);
+    }
 }
 
 int main(int argc, char *argv[]) {
