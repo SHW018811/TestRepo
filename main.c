@@ -510,26 +510,10 @@ void *temp_batterypack_thread(void *arg) {
 }
 
 void *voltage_batterypack_thread(void *arg) {
-
 }
 
 //tid8
 void *battery_idle_thread(void *arg) {
-    int l = 0;
-    Init_Battery();
-    while (ifrunning) {
-        pthread_mutex_lock(&lock);
-        Update_Temperature();
-        Update_Resistance();
-        SimulateTerminalVoltage();
-        SOCEKF();
-        ChargeCurrentLimits();
-        pthread_mutex_unlock(&lock);
-
-        usleep(100000);
-        l++;
-    }
-    return NULL;
 }
 
 int main(int argc, char *argv[]) {
