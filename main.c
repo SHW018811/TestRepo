@@ -112,6 +112,7 @@ void PrintCell() {
     for (int i = 0; i < BATTERY_CELLS; i++) {
         temp[i] = battery[i].temp;
         voltage[i] = battery[i].voltage_terminal;
+        if(fabs(voltage[i]) < 1e-4) voltage[i] =0.0;
     }
     int local_status = bms_status.Status;
     int local_air_temp = bms_temperature.AirTemp;
@@ -121,10 +122,10 @@ void PrintCell() {
     for (int i = 0; i < BATTERY_CELLS; i++) {                       //print battery cells data
         // temperature color
         const char* temp_color = RESET;
-        if (temp[i] <= -10) temp_color = BLUE;
-        else if (temp[i] <= 0) temp_color = YELLOW;
-        else if (temp[i] >= 45) temp_color = RED;
-        else if (temp[i] >= 13) temp_color = GREEN;
+        if (temp[i] <= 0) temp_color = BLUE;
+        else if (temp[i] <= 14) temp_color = YELLOW;
+        else if (temp[i] >= 35) temp_color = RED;
+        else if (temp[i] >= 26) temp_color = GREEN;
 
         // voltage color
         const char* volt_color = RESET;
@@ -595,11 +596,17 @@ void SOCEKF(int i){
 
 /* Todo list [Hi_Hee]
     Charging voltage update complete -> Check [ O ]
-    Battery SOC not enable battery bar -> Check [ X ]
+    Battery SOC not enable battery bar -> Check [ O ]
     Battery voltage final line need change -> Check [ X ]
     Battery charging speed is to low -> Check [ X ]
     Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ X ]
     Arrow keyboard change value to voltage not enable -> Check [ X ]
+    Fucntion Input_thread set SOC not enable SOC because start 0% -> Check [ X ]
+
+    웹 코드 -> 완성본으로 올리기
+    LSTM -> 정상 데이터 기반 학습 후 예측
+    시뮬레이터 -> 전류 상승 및 온도 상승 같은 시나리오 구현 -> BMS 대응
+    시뮬레이터 -> 시나리오 실행 -> BMS 오류 -> LSTM 모델이 대응
 */
 
 void *ekf_thread(void *arg){                        //tid5
