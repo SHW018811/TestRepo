@@ -125,14 +125,14 @@ void PrintCell() {
         if (temp[i] <= 0) temp_color = BLUE;
         else if (temp[i] <= 14) temp_color = YELLOW;
         else if (temp[i] >= 35) temp_color = RED;
-        else if (temp[i] >= 26) temp_color = GREEN;
+        else if (temp[i] >= 15) temp_color = GREEN;
 
         // voltage color
         const char* volt_color = RESET;
         if (voltage[i] <= 2.5) volt_color = RED;
         else if (voltage[i] <= 2.8) volt_color = YELLOW;
         else if (voltage[i] >= 4.2) volt_color = RED;
-        else if (voltage[i] >= 4.0) volt_color = GREEN;
+        else if (voltage[i] >= 2.9) volt_color = GREEN;
 
         if ((i + 1) == bms_battery_info.MaxVoltageID) volt_color = MAXHIGHLIGHT;
         if ((i + 1) == bms_battery_info.MinVoltageID) volt_color = MINHIGHLIGHT;
