@@ -494,7 +494,7 @@ void Init_Battery(){
 void Update_Temperature(int i){
     double heater_on, cooler_on, total_heat;
     heater_on = (battery[i].temp < HEATER_ON_TEMP)? HEAT_COOL_POWER : 0;
-    cooler_on = (battery[i].temp < COOLER_ON_TEMP)? HEAT_COOL_POWER : 0;
+    cooler_on = (battery[i].temp > COOLER_ON_TEMP)? HEAT_COOL_POWER : 0;
     total_heat = (battery[i].R0 * pow(battery[i].charge_current, 2)) + heater_on - cooler_on;
     battery[i].temp += DELTA_TIME / 200 * (total_heat - (battery[i].temp - bms_temperature.AirTemp) / 3);
 }
@@ -597,11 +597,11 @@ void SOCEKF(int i){
 /* Todo list [Hi_Hee]
     Charging voltage update complete -> Check [ O ]
     Battery SOC not enable battery bar -> Check [ O ]
-    Battery voltage final line need change -> Check [ X ]
-    Battery charging speed is to low -> Check [ X ]
-    Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ X ]
-    Arrow keyboard change value to voltage not enable -> Check [ X ]
+    Battery voltage final line need change -> Check [ O ]
+    Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ O ]
     Fucntion Input_thread set SOC not enable SOC because start 0% -> Check [ X ]
+    Battery charging speed is to low -> Check [ X ]
+    Arrow keyboard change value to voltage not enable -> Check [ X ]
 
     웹 코드 -> 완성본으로 올리기
     LSTM -> 정상 데이터 기반 학습 후 예측
