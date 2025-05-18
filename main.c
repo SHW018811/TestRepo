@@ -277,11 +277,6 @@ void SimInitializer() {
     default_battery.SOC = soc;
     default_battery.voltage_terminal = SocFromOcv(soc);
     bms_temperature.AirTemp = air_temp;
-
-    for(int i=0; i<BATTERY_CELLS; i++){
-        battery[i].SOC = soc;
-        battery[i].voltage_terminal = SocFromOcv(soc);
-    }
     pthread_mutex_unlock(&lock);
 }
 
@@ -485,14 +480,15 @@ void *print_screen_thread(void *arg) {              //tid3
 
 void Init_Battery(){
     for(int i=0; i<BATTERY_CELLS; i++){
-        battery[i].SOC = SocFromOcv(charge_ocv[0]);
+        battery[i].SOC = default_battery.SOC;
         battery[i].voltage_delay = 0;
         battery[i].charge_current = -0.41;
         battery[i].capacity = 4.07611;
         battery[i].R0 = 0.00005884314;
         battery[i].R1 = 0.01145801322;
         battery[i].C1 = 4846.080679;
-        battery[i].voltage_terminal = battery[i].charge_current * battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)));
+        battery[i].voltage_terminal = default_battery.voltage_terminal;
+        //battery[i].voltage_terminal = battery[i].charge_current * battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)));
         battery[i].temp = 25;
     }
 }
