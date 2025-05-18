@@ -132,7 +132,7 @@ void PrintCell() {
         if (voltage[i] <= 2.5) volt_color = RED;
         else if (voltage[i] <= 2.8) volt_color = YELLOW;
         else if (voltage[i] >= 4.2) volt_color = RED;
-        else if (voltage[i] >= 2.9) volt_color = GREEN;
+        else if (voltage[i] >= 2.8) volt_color = GREEN;
 
         if ((i + 1) == bms_battery_info.MaxVoltageID) volt_color = MAXHIGHLIGHT;
         if ((i + 1) == bms_battery_info.MinVoltageID) volt_color = MINHIGHLIGHT;
