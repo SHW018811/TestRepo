@@ -260,6 +260,7 @@ void ChangeValue(int mode, int ifup) {
 
 
 // get input and reset battery cells when program starts
+//Todo -> Input SOC -> enable SOC
 void SimInitializer() {
     int soc, air_temp;
     printf("input SOC you want (0~100): ");
@@ -276,6 +277,11 @@ void SimInitializer() {
     default_battery.SOC = soc;
     default_battery.voltage_terminal = SocFromOcv(soc);
     bms_temperature.AirTemp = air_temp;
+
+    for(int i=0; i<BATTERY_CELLS; i++){
+        battery[i].SOC = soc;
+        battery[i].voltage_terminal = SocFromOcv(soc);
+    }
     pthread_mutex_unlock(&lock);
 }
 
