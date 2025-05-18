@@ -601,7 +601,7 @@ void SOCEKF(int i){
     Battery SOC not enable battery bar -> Check [ O ]
     Battery voltage final line need change -> Check [ O ]
     Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ O ]
-    Fucntion Input_thread set SOC not enable SOC because start 0% -> Check [ X ]
+    Fucntion Input_thread set SOC not enable SOC because start 0% -> Check [ O ]
     Battery charging speed is to low -> Check [ X ]
     Arrow keyboard change value to voltage not enable -> Check [ X ]
 
@@ -642,9 +642,9 @@ int main(int argc, char *argv[]) {
     PrintLogo(0);
     printf("\n\n");
 
-    InitBatteryArray();
     SimInitializer();
     Init_Battery();         // Update Init_battery
+    InitBatteryArray();
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");
