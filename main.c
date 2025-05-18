@@ -645,10 +645,10 @@ int main(int argc, char *argv[]) {
     printf(SET_CURSOR_UL);             // set cursor UpLeft
     PrintLogo(0);
     printf("\n\n");
-    SimInitializer();
 
     InitBatteryArray();
     Init_Battery();         // Update Init_battery
+    SimInitializer();
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");
