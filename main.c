@@ -624,7 +624,7 @@ void *ekf_thread(void *arg){                        //tid5
             SOCEKF(i);
         }
         pthread_mutex_unlock(&lock);
-        usleep(100000);
+        usleep(10000);
     }
     return NULL;
 }
