@@ -647,8 +647,8 @@ int main(int argc, char *argv[]) {
     printf("\n\n");
 
     InitBatteryArray();
-    Init_Battery();         // Update Init_battery
     SimInitializer();
+    Init_Battery();         // Update Init_battery
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");
