@@ -487,7 +487,7 @@ void Init_Battery(){
         battery[i].R0 = 0.00005884314;
         battery[i].R1 = 0.01145801322;
         battery[i].C1 = 4846.080679;
-        battery[i].voltage_terminal = default_battery.voltage_terminal;
+        //battery[i].voltage_terminal = default_battery.voltage_terminal;
         //battery[i].voltage_terminal = battery[i].charge_current * battery[i].R1 * (1 - exp(-DELTA_TIME / (battery[i].R1 * battery[i].C1)));
         battery[i].temp = 25;
     }
@@ -642,9 +642,9 @@ int main(int argc, char *argv[]) {
     PrintLogo(0);
     printf("\n\n");
 
+    InitBatteryArray();
     SimInitializer();
     Init_Battery();         // Update Init_battery
-    InitBatteryArray();
     printf("waiting for start .");
     usleep(1000000);
     printf("\rwaiting for start ..");
