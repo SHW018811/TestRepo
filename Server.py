@@ -95,9 +95,9 @@ while True:
                     min(min(temperature_data), min(voltage_data), min(current_data)) - 1,
                     max(max(temperature_data), max(voltage_data), max(current_data)) + 1
                 )
-
-                plt.draw()
-                plt.pause(0.001)
+                if time_step % 10 == 0:
+                    plt.draw()
+                    plt.pause(0.001)
 
         except Exception as e:
             print(f"⚠️ 데이터 파싱 오류: {e}")
