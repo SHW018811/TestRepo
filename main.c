@@ -680,7 +680,7 @@ void *ekf_thread(void *arg){                        //tid5
             for(int k=0; k<BATTERY_CELLS; k++) avg_soc += battery[k].SOC;
             avg_soc /= BATTERY_CELLS;
             if(avg_soc > 90.0) CellBalancing(i); 
-            SendBatteryToPythonSocket(i);
+            //SendBatteryToPythonSocket(i);
         }
         pthread_mutex_unlock(&lock);
         usleep(10000);
