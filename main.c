@@ -663,6 +663,7 @@ void CellBalancing(int i) {
     if (!manual_voltage_override[i]) {
         battery[i].voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
     }
+*/
 void SendBatteryToPythonSocket(int i) {
     int sockfd;
     struct sockaddr_in servaddr;
@@ -687,7 +688,7 @@ void SendBatteryToPythonSocket(int i) {
     send(sockfd, message, strlen(message), 0);
     close(sockfd);
 }
-*/
+
 
 void *ekf_thread(void *arg){                        //tid5
     while(ifrunning){
@@ -704,7 +705,7 @@ void *ekf_thread(void *arg){                        //tid5
             for(int k=0; k<BATTERY_CELLS; k++) avg_soc += battery[k].SOC;
             avg_soc /= BATTERY_CELLS;
             if(avg_soc > 90.0) CellBalancing(i); 
-            //SendBatteryToPythonSocket(i);
+            SendBatteryToPythonSocket(i);
         }
         pthread_mutex_unlock(&lock);
         usleep(10000);
