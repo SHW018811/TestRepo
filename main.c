@@ -227,15 +227,20 @@ void ChangeValue(int mode, int ifup) {
     if (ifup) {
         switch(mode) {
             case 0:
-                if (bms_temperature.AirTemp < 127) bms_temperature.AirTemp ++; break;
+                if (bms_temperature.AirTemp < 127) bms_temperature.AirTemp ++;
+                break;
             case 1:
-                if (battery[0].temp < 127) battery[0].temp++; break;
+                if (battery[0].temp < 127) battery[0].temp++;
+                break;
             case 2:
-                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1; break;
+                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1;
+                break;
             case 3:
-                if (battery[1].temp < 127) battery[1].temp++; break;
+                if (battery[1].temp < 127) battery[1].temp++;
+                break;
             case 4:
-                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1; break;
+                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1;
+                break;
             default:
                 break;
         }
@@ -243,15 +248,20 @@ void ChangeValue(int mode, int ifup) {
     else if (!ifup) {
         switch(mode) {
             case 0:
-                if (bms_temperature.AirTemp > -127) bms_temperature.AirTemp --; break;
+                if (bms_temperature.AirTemp > -127) bms_temperature.AirTemp --;
+                break;
             case 1:
-                if (battery[0].temp > -127) battery[0].temp--; break;
+                if (battery[0].temp > -127) battery[0].temp--;
+                break;
             case 2:
-                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1; break;
+                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1;
+                break;
             case 3:
-                if (battery[1].temp > -127) battery[1].temp--; break;
+                if (battery[1].temp > -127) battery[1].temp--;
+                break;
             case 4:
-                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1; break;
+                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1;
+                break;
             default:
                 break;
         }
@@ -653,7 +663,6 @@ void CellBalancing(int i) {
     if (!manual_voltage_override[i]) {
         battery[i].voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
     }
-*/
 void SendBatteryToPythonSocket(int i) {
     int sockfd;
     struct sockaddr_in servaddr;
@@ -678,6 +687,7 @@ void SendBatteryToPythonSocket(int i) {
     send(sockfd, message, strlen(message), 0);
     close(sockfd);
 }
+*/
 
 void *ekf_thread(void *arg){                        //tid5
     while(ifrunning){
@@ -694,7 +704,7 @@ void *ekf_thread(void *arg){                        //tid5
             for(int k=0; k<BATTERY_CELLS; k++) avg_soc += battery[k].SOC;
             avg_soc /= BATTERY_CELLS;
             if(avg_soc > 90.0) CellBalancing(i); 
-            SendBatteryToPythonSocket(i);
+            //SendBatteryToPythonSocket(i);
         }
         pthread_mutex_unlock(&lock);
         usleep(10000);
