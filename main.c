@@ -231,11 +231,11 @@ void ChangeValue(int mode, int ifup) {
             case 1:
                 if (battery[0].temp < 127) battery[0].temp++; break;
             case 2:
-                if (battery[0].voltage_terminal < 9.0) battery[0].voltage_terminal += 0.1; break;
+                if (battery[0].voltage_terminal < 4.2) battery[0].voltage_terminal += 0.1; break;
             case 3:
                 if (battery[1].temp < 127) battery[1].temp++; break;
             case 4:
-                if (battery[1].voltage_terminal < 9.0) battery[1].voltage_terminal += 0.1; break;
+                if (battery[1].voltage_terminal < 4.2) battery[1].voltage_terminal += 0.1; break;
             default:
                 break;
         }
@@ -247,11 +247,11 @@ void ChangeValue(int mode, int ifup) {
             case 1:
                 if (battery[0].temp > -127) battery[0].temp--; break;
             case 2:
-                if (battery[0].voltage_terminal > 5.5) battery[0].voltage_terminal -= 0.1; break;
+                if (battery[0].voltage_terminal > 2.5) battery[0].voltage_terminal -= 0.1; break;
             case 3:
                 if (battery[1].temp > -127) battery[1].temp--; break;
             case 4:
-                if (battery[1].voltage_terminal > 5.5) battery[1].voltage_terminal -= 0.1; break;
+                if (battery[1].voltage_terminal > 2.5) battery[1].voltage_terminal -= 0.1; break;
             default:
                 break;
         }
@@ -596,19 +596,63 @@ void SOCEKF(int i){
     
 }
 
-/* Todo list [Hi_Hee]
-    Charging voltage update complete -> Check [ O ]
-    Battery SOC not enable battery bar -> Check [ O ]
-    Battery voltage final line need change -> Check [ O ]
-    Battery temperature set 25 ~> but battery temeperature is 10 -> Check [ O ]
-    Fucntion Input_thread set SOC not enable SOC because start 0% -> Check [ O ]
-    Battery charging speed is to low -> Check [ X ]
-    Arrow keyboard change value to voltage not enable -> Check [ X ]
-
+void CellBalancing(int i) {
+    double min_voltage = bms_battery_info.MinVoltage;
+    if (battery[i].voltage_terminal < min_voltage) {
+        min_voltage = battery[i].voltage_terminal;
+    }
+    if ((battery[i].voltage_terminal - min_voltage) > 0.01) {
+        battery[i].voltage_terminal -= 0.005;  // 패시브 방전 시뮬레이션
+        if (battery[i].voltage_terminal < min_voltage) {
+            battery[i].voltage_terminal = min_voltage;
+        }
+    }
+}
+/*
     웹 코드 -> 완성본으로 올리기
     LSTM -> 정상 데이터 기반 학습 후 예측
     시뮬레이터 -> 전류 상승 및 온도 상승 같은 시나리오 구현 -> BMS 대응
     시뮬레이터 -> 시나리오 실행 -> BMS 오류 -> LSTM 모델이 대응
+
+    셀 밸런싱 관련 질문 -> 쉬워? 그럼 적용 -> 패시브가 적용이 단순하긴함 -> CV모드 진입(80~90%진입) -> 보통 능동형 사용 -> 구현 시간 부족
+    LSTM 모델 학습 시켜보자 -> 이상 데이터 탐지? -> 실시간으로 적용해보자
+*/
+
+/*
+    키보드 입력 시 시나리오 작동하게
+    if (scenario_enabled && step > 1500 && step < 1800) {
+        battery[0].temp += 0.3;  // 온도 이상
+    }
+    case '1':
+    scenario_enabled = 1;  // 온도 이상 시나리오
+    break;
+    -----------------------------------------------------------
+    typedef struct {
+        int start;
+        int end;
+        int cell_id;
+        enum {TEMP_RISE, VOLTAGE_DROP, CURRENT_SPIKE} type;
+    } FaultScenario;
+
+    void ApplyScenario(FaultScenario s) {
+        if (step >= s.start && step <= s.end) {
+            switch (s.type) {
+                case TEMP_RISE: battery[s.cell_id].temp += 0.3; break;
+                case VOLTAGE_DROP: battery[s.cell_id].voltage_terminal -= 0.1; break;
+            }
+        }
+    }
+    
+    int manual_voltage_override[NUM_CELLS] = {0};
+    case 2:
+    if (battery[0].voltage_terminal < 9.0) {
+        battery[0].voltage_terminal += 0.1;
+        manual_voltage_override[0] = 1;
+    }
+    break;
+    if (!manual_voltage_override[i]) {
+        battery[i].voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
+    }
 */
 
 void *ekf_thread(void *arg){                        //tid5
@@ -622,6 +666,10 @@ void *ekf_thread(void *arg){                        //tid5
                 SimulateTerminalVoltage(i); // 충전 시뮬레이션 (전압, SOC 증가)
             }
             SOCEKF(i);
+            double avg_soc = 0;
+            for(int k=0; k<BATTERY_CELLS; k++) avg_soc += battery[k].SOC;
+            avg_soc /= BATTERY_CELLS;
+            if(avg_soc > 90.0) CellBalancing(i); 
         }
         pthread_mutex_unlock(&lock);
         usleep(10000);
