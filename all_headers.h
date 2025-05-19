@@ -23,7 +23,8 @@ all_headers.h
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
-
+#include <arpa/inet.h>
+#include <netinet/in.h>
 //MACROS
 #define INTERFACENAMESIZE 50
 
