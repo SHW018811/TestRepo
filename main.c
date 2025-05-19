@@ -664,31 +664,6 @@ void CellBalancing(int i) {
         battery[i].voltage_terminal = OcvFromSoc(battery[i].SOC) - battery[i].voltage_delay - battery[i].R0 * battery[i].charge_current;
     }
 */
-void SendBatteryToPythonSocket(int i) {
-    int sockfd;
-    struct sockaddr_in servaddr;
-
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(12345);
-    servaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-
-    if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) < 0) {
-        perror("소켓 연결 실패");
-        return;
-    }
-
-    char message[128];
-    snprintf(message, sizeof(message), "%.2f,%.2f,%.2f,%.2f\n",
-        battery[i].SOC,
-        battery[i].voltage_terminal,
-        battery[i].charge_current,
-        battery[i].temp);
-
-    send(sockfd, message, strlen(message), 0);
-    close(sockfd);
-}
-
 
 void *ekf_thread(void *arg){                        //tid5
     while(ifrunning){
@@ -705,7 +680,6 @@ void *ekf_thread(void *arg){                        //tid5
             for(int k=0; k<BATTERY_CELLS; k++) avg_soc += battery[k].SOC;
             avg_soc /= BATTERY_CELLS;
             if(avg_soc > 90.0) CellBalancing(i); 
-            SendBatteryToPythonSocket(i);
         }
         pthread_mutex_unlock(&lock);
         usleep(100000);
